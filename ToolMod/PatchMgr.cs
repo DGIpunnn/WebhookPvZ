@@ -855,6 +855,7 @@ public static class MousePatch
                     CreatePlant.Instance.SetPlant(ox, plant.thePlantRow, plant.thePlantType);
                 if (gameObject != null && gameObject.TryGetComponent<Plant>(out var component))
                 {
+                    Tool.print(plant);
                     plant.Die(Plant.DieReason.ByMix);
                     i--;
                 }
