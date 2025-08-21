@@ -811,6 +811,59 @@ public static class ZombiePatch
         }
     }
 }
+
+[HarmonyPatch(typeof(Mouse), nameof(Mouse.TryToSetPlantByGlove))]
+public static class MousePatch
+{
+    [HarmonyPrefix]
+    public static bool Prefix(Mouse __instance)
+    {
+
+        if (true)
+        {
+            int ox = __instance.thePlantOnGlove.thePlantColumn;//(0-9)
+            int oy = __instance.thePlantOnGlove.thePlantRow;
+            int i=0;
+            List<Plant> plants = new List<Plant>();
+            while (i < Board.Instance.plantArray.Count)
+            {
+                var plant = Board.Instance.plantArray[i];
+                if (plant.thePlantColumn == ox)
+                {
+                    MelonLogger.Msg($"i:{i} {plant.thePlantType} x:{plant.thePlantColumn} y:{plant.thePlantRow}");
+                    if(plant == __instance.thePlantOnGlove){}
+                    else
+                    {
+                        plants.Add(plant);
+                        // GameObject gameObject =
+                        //     CreatePlant.Instance.SetPlant(ox, plant.thePlantRow, plant.thePlantType);
+                        // if (gameObject != null && gameObject.TryGetComponent<Plant>(out var component))
+                        // {
+                        //     plant.Die(Plant.DieReason.ByMix);
+                        //     i--;
+                        // }
+                        //plant.thePlantColumn = ox;
+                        //i--;
+                    }
+                }
+                i++;
+            }
+
+            foreach (var plant in plants)
+            {
+                GameObject gameObject =
+                    CreatePlant.Instance.SetPlant(ox, plant.thePlantRow, plant.thePlantType);
+                if (gameObject != null && gameObject.TryGetComponent<Plant>(out var component))
+                {
+                    plant.Die(Plant.DieReason.ByMix);
+                    i--;
+                }
+            }
+        }
+        //MelonLogger.Msg($"x:{__instance.theMouseColumn} y:{__instance.theMouseRow}  oy:{__instance.thePlantOnGlove.thePlantRow}");
+        return true;
+    }
+}
 #if false
 [HarmonyPatch(typeof(Plant))]
 public class Plant_HealthTextPatch
@@ -1355,6 +1408,8 @@ public class PatchMgr : MonoBehaviour
                     AlmanacZombieType is not ZombieType.Nothing)
                     GridItem.SetGridItem(Mouse.Instance.theMouseColumn, Mouse.Instance.theMouseRow,
                         GridItemType.ScaryPot).Cast<ScaryPot>().theZombieType = AlmanacZombieType;
+                if (Input.GetKeyDown(Core.KeyRandomCard.Value.Value))
+                    RandomCard = !RandomCard;
                 if (Board.Instance is not null)
                 {
                     var t = Board.Instance.boardTag;

@@ -603,7 +603,8 @@ public partial class ModifierViewModel : ObservableObject
             new InGameHotkeyUIVM(new InGameHotkeyUI("图鉴种植：僵尸 AlmanacCreateZombie", (KeyCode)keycodes[4])),
             new InGameHotkeyUIVM(new InGameHotkeyUI("图鉴种植：僵尸是否魅惑 AlmanacZombieMindCtrl", (KeyCode)keycodes[5])),
             new InGameHotkeyUIVM(new InGameHotkeyUI("图鉴种植：植物罐子 AlmanacCreatePlantVase", (KeyCode)keycodes[6])),
-            new InGameHotkeyUIVM(new InGameHotkeyUI("图鉴种植：僵尸罐子 AlmanacCreateZombieVase", (KeyCode)keycodes[7]))
+            new InGameHotkeyUIVM(new InGameHotkeyUI("图鉴种植：僵尸罐子 AlmanacCreateZombieVase", (KeyCode)keycodes[7])),
+            new InGameHotkeyUIVM(new InGameHotkeyUI("随机卡槽 RandomCard", (KeyCode)keycodes[8])),
         ];
         InGameHotkeys.ListChanged += (_, _) => SyncInGameHotkeys();
     }

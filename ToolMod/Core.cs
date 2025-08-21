@@ -31,6 +31,7 @@ public class Core : MelonMod
     public static Lazy<MelonPreferences_Entry<KeyCode>> KeyAlmanacCreatePlantVase { get; set; } = new();
     public static Lazy<MelonPreferences_Entry<KeyCode>> KeyAlmanacCreateZombie { get; set; } = new();
     public static Lazy<MelonPreferences_Entry<KeyCode>> KeyAlmanacCreateZombieVase { get; set; } = new();
+    public static Lazy<MelonPreferences_Entry<KeyCode>> KeyRandomCard { get; set; } = new();
     public static Lazy<MelonPreferences_Entry<KeyCode>> KeyAlmanacZombieMindCtrl { get; set; } = new();
     public static Lazy<List<MelonPreferences_Entry<KeyCode>>> KeyBindings { get; set; } = new();
     public static Lazy<MelonPreferences_Entry<KeyCode>> KeyShowGameInfo { get; set; } = new();
@@ -85,12 +86,15 @@ public class Core : MelonMod
         KeyAlmanacCreateZombieVase =
             new Lazy<MelonPreferences_Entry<KeyCode>>(Config.Value.CreateEntry(nameof(KeyAlmanacCreateZombieVase),
                 KeyCode.K));
+        KeyRandomCard =
+            new Lazy<MelonPreferences_Entry<KeyCode>>(Config.Value.CreateEntry(nameof(KeyRandomCard),
+                KeyCode.H));
         ModsHash = new Lazy<MelonPreferences_Entry<string>>(Config.Value.CreateEntry(nameof(ModsHash), ""));
 
         KeyBindings = new Lazy<List<MelonPreferences_Entry<KeyCode>>>([
             KeyTimeStop.Value, KeyTopMostCardBank.Value, KeyShowGameInfo.Value,
             KeyAlmanacCreatePlant.Value, KeyAlmanacCreateZombie.Value, KeyAlmanacZombieMindCtrl.Value,
-            KeyAlmanacCreatePlantVase.Value, KeyAlmanacCreateZombieVase.Value
+            KeyAlmanacCreatePlantVase.Value, KeyAlmanacCreateZombieVase.Value, KeyRandomCard.Value
         ]);
 
         Port.Value.Description = "修改窗口无法出现时可尝试修改此数值，范围10000~60000";
