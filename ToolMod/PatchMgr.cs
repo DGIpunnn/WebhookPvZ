@@ -12,6 +12,7 @@ using Il2CppTMPro;
 using MelonLoader;
 using Newtonsoft.Json;
 using ToolModData;
+using Unity.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
 using static ToolMod.PatchMgr;
@@ -821,50 +822,38 @@ public static class MousePatch
 
         if (true)
         {
-            int ox = __instance.thePlantOnGlove.thePlantColumn;//(0-9)
-            int oy = __instance.thePlantOnGlove.thePlantRow;
-            int i=0;
+            int vcol = __instance.theMouseColumn - __instance.thePlantOnGlove.thePlantColumn;
+            int newCol = __instance.theMouseColumn;//(0-9)
             List<Plant> plants = new List<Plant>();
-            while (i < Board.Instance.plantArray.Count)
+            foreach (var plant in Board.Instance.plantArray)
             {
-                var plant = Board.Instance.plantArray[i];
-                if (plant.thePlantColumn == ox)
+                if(plant == null || plant.gameObject == null)continue;
+                if (plant.thePlantColumn == __instance.thePlantOnGlove.thePlantColumn)
                 {
-                    MelonLogger.Msg($"i:{i} {plant.thePlantType} x:{plant.thePlantColumn} y:{plant.thePlantRow}");
+                    MelonLogger.Msg($"{plant.thePlantType} x:{plant.thePlantColumn} y:{plant.thePlantRow}");
                     if(plant == __instance.thePlantOnGlove){}
                     else
                     {
                         plants.Add(plant);
-                        // GameObject gameObject =
-                        //     CreatePlant.Instance.SetPlant(ox, plant.thePlantRow, plant.thePlantType);
-                        // if (gameObject != null && gameObject.TryGetComponent<Plant>(out var component))
-                        // {
-                        //     plant.Die(Plant.DieReason.ByMix);
-                        //     i--;
-                        // }
-                        //plant.thePlantColumn = ox;
-                        //i--;
                     }
                 }
-                i++;
             }
-
             foreach (var plant in plants)
             {
                 GameObject gameObject =
-                    CreatePlant.Instance.SetPlant(ox, plant.thePlantRow, plant.thePlantType);
-                if (gameObject != null && gameObject.TryGetComponent<Plant>(out var component))
+                    CreatePlant.Instance.SetPlant(newCol, plant.thePlantRow, plant.thePlantType);
+                if (gameObject != null && gameObject.TryGetComponent<Plant>(out var component) && component != null)
                 {
-                    Tool.print(plant);
+                    Board.Instance.plantArray.Remove(plant);
                     plant.Die(Plant.DieReason.ByMix);
-                    i--;
                 }
             }
         }
-        //MelonLogger.Msg($"x:{__instance.theMouseColumn} y:{__instance.theMouseRow}  oy:{__instance.thePlantOnGlove.thePlantRow}");
+        MelonLogger.Msg($"x:{__instance.theMouseColumn} y:{__instance.theMouseRow}  oy:{__instance.thePlantOnGlove.thePlantRow}");
         return true;
     }
 }
+
 #if false
 [HarmonyPatch(typeof(Plant))]
 public class Plant_HealthTextPatch
