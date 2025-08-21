@@ -48,6 +48,7 @@ namespace ToolModBepInEx
         public static Lazy<ConfigEntry<KeyCode>> KeyAlmanacCreatePlantVase { get; set; } = new();
         public static Lazy<ConfigEntry<KeyCode>> KeyAlmanacCreateZombie { get; set; } = new();
         public static Lazy<ConfigEntry<KeyCode>> KeyAlmanacCreateZombieVase { get; set; } = new();
+        public static Lazy<ConfigEntry<KeyCode>> KeyRandomCard { get; set; } = new();
         public static Lazy<ConfigEntry<KeyCode>> KeyAlmanacZombieMindCtrl { get; set; } = new();
         public static Lazy<List<ConfigEntry<KeyCode>>> KeyBindings { get; set; } = new();
         public static Lazy<ConfigEntry<KeyCode>> KeyShowGameInfo { get; set; } = new();
@@ -281,12 +282,14 @@ namespace ToolModBepInEx
                 new Lazy<ConfigEntry<KeyCode>>(Config.Bind("PVZRHTools", nameof(KeyAlmanacCreatePlantVase), KeyCode.J));
             KeyAlmanacCreateZombieVase =
                 new Lazy<ConfigEntry<KeyCode>>(Config.Bind("PVZRHTools", nameof(KeyAlmanacCreateZombieVase), KeyCode.K));
+            KeyRandomCard =
+                new Lazy<ConfigEntry<KeyCode>>(Config.Bind("PVZRHTools", nameof(KeyRandomCard), KeyCode.H));
             ModsHash = new Lazy<ConfigEntry<string>>(Config.Bind("PVZRHTools", nameof(ModsHash), ""));
 
             KeyBindings = new Lazy<List<ConfigEntry<KeyCode>>>([
                 KeyTimeStop.Value, KeyTopMostCardBank.Value, KeyShowGameInfo.Value,
                 KeyAlmanacCreatePlant.Value, KeyAlmanacCreateZombie.Value, KeyAlmanacZombieMindCtrl.Value,
-                KeyAlmanacCreatePlantVase.Value, KeyAlmanacCreateZombieVase.Value
+                KeyAlmanacCreatePlantVase.Value, KeyAlmanacCreateZombieVase.Value,KeyRandomCard.Value
             ]);
             Config.Save();
         }

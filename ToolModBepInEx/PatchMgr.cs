@@ -808,6 +808,44 @@ public static class ZombiePatch
     }
 }
 
+[HarmonyPatch(typeof(Mouse), nameof(Mouse.TryToSetPlantByGlove))]
+public static class MousePatch
+{
+    [HarmonyPrefix]
+    public static bool Prefix(Mouse __instance)
+    {
+        if (ColumnGlove)
+        {
+            int vcol = __instance.theMouseColumn - __instance.thePlantOnGlove.thePlantColumn;
+            int newCol = __instance.theMouseColumn;
+            List<Plant> plants = new List<Plant>();
+            foreach (var plant in Board.Instance.plantArray)
+            {
+                if(plant == null || plant.gameObject == null)continue;
+                if (plant.thePlantColumn == __instance.thePlantOnGlove.thePlantColumn)
+                {
+                    if(plant == __instance.thePlantOnGlove){}
+                    else
+                    {
+                        plants.Add(plant);
+                    }
+                }
+            }
+            foreach (var plant in plants)
+            {
+                GameObject gameObject =
+                    CreatePlant.Instance.SetPlant(newCol, plant.thePlantRow, plant.thePlantType);
+                if (gameObject != null && gameObject.TryGetComponent<Plant>(out var component) && component != null)
+                {
+                    Board.Instance.plantArray.Remove(plant);
+                    plant.Die(Plant.DieReason.ByMix);
+                }
+            }
+        }
+        return true;
+    }
+}
+
 public class PatchMgr : MonoBehaviour
 {
     public static Board board = new();
@@ -842,6 +880,7 @@ public class PatchMgr : MonoBehaviour
     public static bool SuperStarNoCD { get; set; } = false;
     public static bool AutoCutFruit { get; set; } = false;
     public static bool RandomCard { get; set; } = false;
+    public static bool ColumnGlove { get; set; } = false;
     public static bool CobCannonNoCD { get; set; } = false;
     public static List<int> ConveyBeltTypes { get; set; } = [];
     public static bool[] Debuffs { get; set; } = [];
@@ -980,6 +1019,8 @@ public class PatchMgr : MonoBehaviour
                     AlmanacZombieType is not ZombieType.Nothing)
                     GridItem.SetGridItem(Mouse.Instance.theMouseColumn, Mouse.Instance.theMouseRow,
                         GridItemType.ScaryPot).Cast<ScaryPot>().theZombieType = AlmanacZombieType;
+                if (Input.GetKeyDown(Core.KeyRandomCard.Value.Value))
+                    RandomCard = !RandomCard;
                 var t = Board.Instance.boardTag;
                 t.enableTravelPlant = t.enableTravelPlant || UnlockAllFusions;
                 Board.Instance.boardTag = t;
