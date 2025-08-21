@@ -605,6 +605,10 @@
                                                   Content="{DynamicResource Tab1.Page7.RandomCard}" Height="21"
                                                   VerticalAlignment="Top" Foreground="White" BorderThickness="2,2,2,2"
                                                   HorizontalAlignment="Left" Margin="0,0,10,0" />
+                                        <CheckBox x:Name="ColumnGlove" IsChecked="{Binding ColumnGlove}"
+                                                  Content="{DynamicResource Tab1.Page7.ColumnGlove}" Height="21"
+                                                  VerticalAlignment="Top" Foreground="White" BorderThickness="2,2,2,2"
+                                                  HorizontalAlignment="Left" Margin="0,0,10,0" />
                                     </StackPanel>
                                 </Grid>
                             </Expander>

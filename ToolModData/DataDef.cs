@@ -17,6 +17,7 @@ public struct BasicProperties : ISyncData
     public bool? SuperStarNoCD { get; set; }
     public bool? AutoCutFruit { get; set; }
     public bool? RandomCard { get; set; }
+    public bool? ColumnGlove { get; set; }
     public bool? CobCannonNoCD { get; set; }
     public bool? DeveloperMode { get; set; }
     public bool? DevLour { get; set; }

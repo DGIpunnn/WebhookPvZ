@@ -1058,6 +1058,10 @@ public partial class ModifierViewModel : ObservableObject
     {
         App.DataSync.Value.SendData(new BasicProperties { RandomCard = value });
     }
+    partial void OnColumnGloveChanged(bool value)
+    {
+        App.DataSync.Value.SendData(new BasicProperties { ColumnGlove = value });
+    }
     partial void OnCobCannonNoCDChanged(bool value)
     {
         App.DataSync.Value.SendData(new BasicProperties { CobCannonNoCD = value });
@@ -1438,6 +1442,7 @@ public partial class ModifierViewModel : ObservableObject
     [ObservableProperty] public partial bool SuperStarNoCD { get; set; }
     [ObservableProperty] public partial bool AutoCutFruit { get; set; }
     [ObservableProperty] public partial bool RandomCard { get; set; }
+    [ObservableProperty] public partial bool ColumnGlove { get; set; }
 
     [ObservableProperty] public partial bool ClearOnWritingField { get; set; }
 

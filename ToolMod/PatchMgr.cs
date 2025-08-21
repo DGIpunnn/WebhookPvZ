@@ -819,18 +819,16 @@ public static class MousePatch
     [HarmonyPrefix]
     public static bool Prefix(Mouse __instance)
     {
-
-        if (true)
+        if (ColumnGlove)
         {
             int vcol = __instance.theMouseColumn - __instance.thePlantOnGlove.thePlantColumn;
-            int newCol = __instance.theMouseColumn;//(0-9)
+            int newCol = __instance.theMouseColumn;
             List<Plant> plants = new List<Plant>();
             foreach (var plant in Board.Instance.plantArray)
             {
                 if(plant == null || plant.gameObject == null)continue;
                 if (plant.thePlantColumn == __instance.thePlantOnGlove.thePlantColumn)
                 {
-                    MelonLogger.Msg($"{plant.thePlantType} x:{plant.thePlantColumn} y:{plant.thePlantRow}");
                     if(plant == __instance.thePlantOnGlove){}
                     else
                     {
@@ -849,7 +847,6 @@ public static class MousePatch
                 }
             }
         }
-        MelonLogger.Msg($"x:{__instance.theMouseColumn} y:{__instance.theMouseRow}  oy:{__instance.thePlantOnGlove.thePlantRow}");
         return true;
     }
 }
@@ -1262,6 +1259,7 @@ public class PatchMgr : MonoBehaviour
     public static bool SuperStarNoCD { get; set; } = false;
     public static bool AutoCutFruit { get; set; } = false;
     public static bool RandomCard { get; set; } = false;
+    public static bool ColumnGlove { get; set; } = false;
     public static bool CobCannonNoCD { get; set; } = false;
     public static List<int> ConveyBeltTypes { get; set; } = [];
     public static bool[] Debuffs { get; set; } = [];
