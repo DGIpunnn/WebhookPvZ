@@ -381,7 +381,7 @@
                 </Border>
             </TabItem>
 
-            <TabItem Header="{DynamicResource Tab1.Header}">
+            <TabItem Header="{DynamicResource Tab1.Header}" Height="28" VerticalAlignment="Bottom">
                 <Border Background="#FF212125" Margin="0,8,0,0" BorderBrush="#FF2FA42F" BorderThickness="2,2,2,2">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
@@ -973,6 +973,15 @@
                             </Expander>
                         </StackPanel>
                     </hc:ScrollViewer>
+                </Border>
+            </TabItem>
+            <TabItem Header="{DynamicResource Tab8.Header}">
+                <Border Background="#00212125" Margin="0,8,0,0" BorderBrush="#FF2FA42F" BorderThickness="2,2,2,2">
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto">
+                        <Grid>
+
+                        </Grid>
+                    </ScrollViewer>
                 </Border>
             </TabItem>
         </TabControl>

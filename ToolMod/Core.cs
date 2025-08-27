@@ -115,7 +115,7 @@ public class Core : MelonMod
 
             var hash = Utils.ComputeFolderHash(MelonEnvironment.ModsDirectory);
             var needRegen = ModsHash.Value.Value != hash;
-#if false
+#if true
                 needRegen = false;
 #endif
             if (needRegen)
