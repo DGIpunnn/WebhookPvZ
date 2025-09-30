@@ -69,6 +69,7 @@ namespace ToolModBepInEx
                     Port.Value.Value = 13531;
                 }
 
+#if GAR
                 var needRegen = false;
                 var hash = Utils.ComputeFolderHash(Paths.PluginPath);
                 if (ModsHash.Value.Value != hash)
@@ -94,6 +95,7 @@ namespace ToolModBepInEx
 #if true
                 needRegen = false;
 #endif
+#endif
                 MLogger.LogWarning("以下id信息为动态生成，仅适用于当前游戏实例！！！");
                 MLogger.LogWarning("以下id信息为动态生成，仅适用于当前游戏实例！！！");
                 MLogger.LogWarning("以下id信息为动态生成，仅适用于当前游戏实例！！！");
@@ -118,8 +120,9 @@ namespace ToolModBepInEx
                 alm.plantName = name1.GetComponent<TextMeshPro>();
                 alm.introduce = info1.AddComponent<TextMeshPro>();
                 gameObject.AddComponent<TravelMgr>();
+#if GAR
                 var gardenIds = "";
-
+#endif
                 for (var i = 0; i < GameAPP.resourcesManager.allPlants.Count; i++)
                 {
                     alm.theSeedType = (int)GameAPP.resourcesManager.allPlants[i];
@@ -129,13 +132,15 @@ namespace ToolModBepInEx
                     MLogger.LogInfo($"Dumping Plant String: {item}");
                     plants.Add((int)GameAPP.resourcesManager.allPlants[i], item);
                     HealthPlants.Add(GameAPP.resourcesManager.allPlants[i], -1);
+#if GAR
                     if (needRegen)
                         gardenIds = Utils.OutputGardenTexture(i, alm.plantName.GetComponent<TextMeshPro>().text, gardenIds);
-
+#endif
                     alm.plantName.GetComponent<TextMeshPro>().text = "";
                 }
 
                 Object.Destroy(gameObject);
+#if GAR
                 if (needRegen)
                 {
                     if (File.Exists("PVZRHTools/GardenTools/plant_id.txt"))
@@ -146,7 +151,7 @@ namespace ToolModBepInEx
                     gid.Flush();
                     Utils.GenerateGardenData();
                 }
-
+#endif
                 GameObject gameObject2 = new();
                 GameObject back2 = new();
                 back2.transform.SetParent(gameObject2.transform);

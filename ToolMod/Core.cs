@@ -114,6 +114,7 @@ public class Core : MelonMod
             }
 
             var hash = Utils.ComputeFolderHash(MelonEnvironment.ModsDirectory);
+#if GAR
             var needRegen = ModsHash.Value.Value != hash;
 #if true
                 needRegen = false;
@@ -137,7 +138,7 @@ public class Core : MelonMod
                             File.Delete(f);
                 }
             }
-
+#endif
 #if true
 
             MLogger.Warning("以下id信息为动态生成，仅适用于当前游戏实例！！！");
@@ -164,8 +165,9 @@ public class Core : MelonMod
             alm.plantName = name1.GetComponent<TextMeshPro>();
             alm.introduce = info1.AddComponent<TextMeshPro>();
             gameObject.AddComponent<TravelMgr>();
+#if GAR
             var gardenIds = "";
-
+#endif
             for (var i = 0; i < GameAPP.resourcesManager.allPlants.Count; i++)
             {
                 alm.theSeedType = (int)GameAPP.resourcesManager.allPlants[i];
@@ -175,14 +177,17 @@ public class Core : MelonMod
                 MLogger.Msg($"Dumping Plant String: {item}");
                 plants.Add((int)GameAPP.resourcesManager.allPlants[i], item);
                 HealthPlants.Add(GameAPP.resourcesManager.allPlants[i], -1);
+#if GAR
                 if (needRegen)
                     gardenIds = Utils.OutputGardenTexture(i, alm.plantName.GetComponent<TextMeshPro>().text,
                         gardenIds);
+#endif
 
                 alm.plantName.GetComponent<TextMeshPro>().text = "";
             }
 
             Object.Destroy(gameObject);
+#if GAR
             if (needRegen)
             {
                 if (File.Exists("PVZRHTools/GardenTools/plant_id.txt"))
@@ -194,7 +199,7 @@ public class Core : MelonMod
                 gid.Flush();
                 Utils.GenerateGardenData();
             }
-
+#endif
             GameObject gameObject2 = new();
             GameObject back2 = new();
             back2.transform.SetParent(gameObject2.transform);
@@ -411,7 +416,6 @@ public class Utils
             if (i == plantids.Count - 1) WritePage(currentPlants, currentPage);
         }
     }
-
     public static bool LoadPlantData()
     {
         try
