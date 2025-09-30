@@ -91,7 +91,9 @@ namespace ToolModBepInEx
                                 File.Delete(f);
                     }
                 }
-
+#if true
+                needRegen = false;
+#endif
                 MLogger.LogWarning("以下id信息为动态生成，仅适用于当前游戏实例！！！");
                 MLogger.LogWarning("以下id信息为动态生成，仅适用于当前游戏实例！！！");
                 MLogger.LogWarning("以下id信息为动态生成，仅适用于当前游戏实例！！！");

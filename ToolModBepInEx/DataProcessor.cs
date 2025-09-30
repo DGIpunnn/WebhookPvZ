@@ -142,8 +142,20 @@ public class DataProcessor : MonoBehaviour
         }
 
         if (data is BasicProperties p1)
-        {
-            if (p1.DeveloperMode is not null) GameAPP.developerMode = (bool)p1.DeveloperMode;
+        {            
+            if (p1.DeveloperMode is not null)
+            {
+                //GameAPP.developerMode = (bool)p1.DeveloperMode;
+                GloveNoCD = true;
+                HammerNoCD = true;
+                FreeCD = true;
+                Board.Instance.freeCD = true;
+                UnlockAllFusions = true;
+                LockMoney = true;
+                LockMoneyCount = 10_0000;
+                LockSun = true;
+                LockSunCount = 6666;
+            }
             if (p1.GameSpeed is not null) SyncSpeed = (float)p1.GameSpeed;
             if (p1.GloveNoCD is not null) GloveNoCD = (bool)p1.GloveNoCD;
             if (p1.HammerNoCD is not null) HammerNoCD = (bool)p1.HammerNoCD;

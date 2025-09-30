@@ -36,6 +36,11 @@ public struct BasicProperties : ISyncData
     public bool? JackboxNotExplode { get; set; }
     public int? LockPresent { get; set; }
     public int? LockWheat { get; set; }
+    public int? LockPresent1 { get; set; }
+    public int? LockPresent2 { get; set; }
+    public int? LockPresent3 { get; set; }
+    public int? LockPresent4 { get; set; }
+    public int? LockPresent5 { get; set; }
     public bool? MineNoCD { get; set; }
     public double? NewZombieUpdateCD { get; set; }
     public bool? NoHole { get; set; }
@@ -80,6 +85,7 @@ public struct GameModes : ISyncData
 [Serializable]
 public struct InGameActions : ISyncData
 {
+    public bool? PvE { get; set; }
     public bool? AbyssCheat { get; set; }
     public bool? BuffRefreshNoLimit { get; set; }
     public bool? Card { get; set; }

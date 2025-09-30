@@ -975,11 +975,59 @@
                     </hc:ScrollViewer>
                 </Border>
             </TabItem>
-            <TabItem Header="{DynamicResource Tab8.Header}">
+            <TabItem Header="">
                 <Border Background="#00212125" Margin="0,8,0,0" BorderBrush="#FF2FA42F" BorderThickness="2,2,2,2">
                     <ScrollViewer HorizontalScrollBarVisibility="Auto">
                         <Grid>
+                            <ComboBox SelectedValue="{Binding LockPresent1}"
+                                                 hc:TitleElement.TitlePlacement="Left"
+                                                 hc:TitleElement.VerticalAlignment="Top"
+                                                 hc:TitleElement.Title="第一个礼盒："
+                                                 hc:TitleElement.TitleWidth="90" x:Name="LockPresent1"
+                                                 Height="24"
+                                                 SelectedValuePath="Key" DisplayMemberPath="Value"
+                                                 ItemsSource="{Binding Plants}"
+                                                 Style="{DynamicResource ComboBoxExtend}" Margin="10,10,370,347" />
+                            <ComboBox SelectedValue="{Binding LockPresent2}"
+                                                 hc:TitleElement.TitlePlacement="Left"
+                                                 hc:TitleElement.VerticalAlignment="Top"
+                                                 hc:TitleElement.Title="第二个礼盒："
+                                                 hc:TitleElement.TitleWidth="90" x:Name="LockPresent2"
+                                                 Height="24"
+                                                 SelectedValuePath="Key" DisplayMemberPath="Value"
+                                                 ItemsSource="{Binding Plants}"
+                                                 Style="{DynamicResource ComboBoxExtend}" Margin="10,43,370,314" />
+                            <ComboBox SelectedValue="{Binding LockPresent3}"
+                                                 hc:TitleElement.TitlePlacement="Left"
+                                                 hc:TitleElement.VerticalAlignment="Top"
+                                                 hc:TitleElement.Title="第三个礼盒："
+                                                 hc:TitleElement.TitleWidth="90" x:Name="LockPresent3"
+                                                 Height="24"
+                                                 SelectedValuePath="Key" DisplayMemberPath="Value"
+                                                 ItemsSource="{Binding Plants}"
+                                                 Style="{DynamicResource ComboBoxExtend}" Margin="10,76,370,281" />
+                            <ComboBox SelectedValue="{Binding LockPresent4}"
+                                                 hc:TitleElement.TitlePlacement="Left"
+                                                 hc:TitleElement.VerticalAlignment="Top"
+                                                 hc:TitleElement.Title="第四个礼盒："
+                                                 hc:TitleElement.TitleWidth="90" x:Name="LockPresent4"
+                                                 Height="24"
+                                                 SelectedValuePath="Key" DisplayMemberPath="Value"
+                                                 ItemsSource="{Binding Plants}"
+                                                 Style="{DynamicResource ComboBoxExtend}" Margin="10,109,370,248" />
+                            <ComboBox SelectedValue="{Binding LockPresent5}"
+                                                 hc:TitleElement.TitlePlacement="Left"
+                                                 hc:TitleElement.VerticalAlignment="Top"
+                                                 hc:TitleElement.Title="第五个礼盒："
+                                                 hc:TitleElement.TitleWidth="90" x:Name="LockPresent5"
+                                                 Height="24"
+                                                 SelectedValuePath="Key" DisplayMemberPath="Value"
+                                                 ItemsSource="{Binding Plants}"
+                                                 Style="{DynamicResource ComboBoxExtend}" Margin="10,142,370,215" />
 
+                            <Button x:Name="PvE" Content="一键放置五植物+一钻盲僵+四黄金盲僵尸+一巨盲盒僵（Ctrl+A）"
+                                            HorizontalAlignment="Left" Height="30" Width="383"
+                                            Command="{Binding PvECommand}" Margin="10,0,0,0" />
                         </Grid>
                     </ScrollViewer>
                 </Border>

@@ -135,6 +135,11 @@ public partial class ModifierViewModel : ObservableObject
         BulletDamageType = 0;
         LockPresent = -1;
         LockWheat = -1;
+        LockPresent1 = -1;
+        LockPresent2 = -1;
+        LockPresent3 = -1;
+        LockPresent4 = -1;
+        LockPresent5 = -1;
         LockBulletType = -2;
         ZombieSeaTypes = [];
         TravelBuffs = [];
@@ -363,7 +368,11 @@ public partial class ModifierViewModel : ObservableObject
     }
 
     #region Commands
-
+    [RelayCommand]
+    public void PvE()
+    {
+        App.DataSync.Value.SendData(new InGameActions { PvE = true });
+    }
     [RelayCommand]
     public void AbyssCheat()
     {
@@ -1182,6 +1191,27 @@ public partial class ModifierViewModel : ObservableObject
     {
         App.DataSync.Value.SendData(new BasicProperties { LockWheat = value });
     }
+    
+    partial void OnLockPresent1Changed(int value)
+    {
+        App.DataSync.Value.SendData(new BasicProperties { LockPresent1 = value });
+    }
+    partial void OnLockPresent2Changed(int value)
+    {
+        App.DataSync.Value.SendData(new BasicProperties { LockPresent2 = value });
+    }
+    partial void OnLockPresent3Changed(int value)
+    {
+        App.DataSync.Value.SendData(new BasicProperties { LockPresent3 = value });
+    }
+    partial void OnLockPresent4Changed(int value)
+    {
+        App.DataSync.Value.SendData(new BasicProperties { LockPresent4 = value });
+    }
+    partial void OnLockPresent5Changed(int value)
+    {
+        App.DataSync.Value.SendData(new BasicProperties { LockPresent5 = value });
+    }
 
     partial void OnLockSunChanged(bool value)
     {
@@ -1539,6 +1569,11 @@ public partial class ModifierViewModel : ObservableObject
     [ObservableProperty] public partial int LockPresent { get; set; }
 
     [ObservableProperty] public partial int LockWheat { get; set; }
+    [ObservableProperty] public partial int LockPresent1 { get; set; }
+    [ObservableProperty] public partial int LockPresent2 { get; set; }
+    [ObservableProperty] public partial int LockPresent3 { get; set; }
+    [ObservableProperty] public partial int LockPresent4 { get; set; }
+    [ObservableProperty] public partial int LockPresent5 { get; set; }
 
     [ObservableProperty] public partial bool LockSun { get; set; }
 

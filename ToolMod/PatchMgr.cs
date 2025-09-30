@@ -832,7 +832,8 @@ public static class MousePatch
                     if(plant == __instance.thePlantOnGlove){}
                     else
                     {
-                        plants.Add(plant);
+                        if(plant.thePlantType == __instance.thePlantOnGlove.thePlantType)
+                            plants.Add(plant);
                     }
                 }
             }
@@ -840,10 +841,20 @@ public static class MousePatch
             {
                 GameObject gameObject =
                     CreatePlant.Instance.SetPlant(newCol, plant.thePlantRow, plant.thePlantType);
-                if (gameObject != null && gameObject.TryGetComponent<Plant>(out var component) && component != null)
+                if (Board.Instance.boardTag.isColumn)
                 {
-                    Board.Instance.plantArray.Remove(plant);
-                    plant.Die(Plant.DieReason.ByMix);
+                    if (newCol == __instance.thePlantOnGlove.thePlantColumn)
+                    {
+                        CreatePlant.Instance.SetPlant(newCol, __instance.thePlantOnGlove.thePlantRow, plant.thePlantType);
+                    }
+                }
+                else
+                {
+                    if (gameObject != null && gameObject.TryGetComponent<Plant>(out var component) && component != null)
+                    {
+                        Board.Instance.plantArray.Remove(plant);
+                        plant.Die(Plant.DieReason.ByMix);
+                    }
                 }
             }
         }
@@ -1291,6 +1302,11 @@ public class PatchMgr : MonoBehaviour
     public static int LockMoneyCount { get; set; } = 3000;
     public static int LockPresent { get; set; } = -1;
     public static int LockWheat { get; set; } = -1;
+    public static int LockPresent1 { get; set; } = -1;
+    public static int LockPresent2 { get; set; } = -1;
+    public static int LockPresent3 { get; set; } = -1;
+    public static int LockPresent4 { get; set; } = -1;
+    public static int LockPresent5 { get; set; } = -1;
     public static bool LockSun { get; set; } = false;
     public static int LockSunCount { get; set; } = 500;
     public static bool MineNoCD { get; set; } = false;

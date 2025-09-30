@@ -122,7 +122,18 @@ public class DataProcessor : MonoBehaviour
 
         if (data is BasicProperties p1)
         {
-            if (p1.DeveloperMode is not null) GameAPP.developerMode = (bool)p1.DeveloperMode;
+            if (p1.DeveloperMode is not null)
+            {
+                //GameAPP.developerMode = (bool)p1.DeveloperMode;
+                GloveNoCD = true;
+                HammerNoCD = true;
+                FreeCD = true;
+                UnlockAllFusions = true;
+                LockMoney = true;
+                LockMoneyCount = 10_0000;
+                LockSun = true;
+                LockSunCount = 6666;
+            }
             if (p1.GameSpeed is not null) SyncSpeed = (float)p1.GameSpeed;
             if (p1.GloveNoCD is not null) GloveNoCD = (bool)p1.GloveNoCD;
             if (p1.HammerNoCD is not null) HammerNoCD = (bool)p1.HammerNoCD;
@@ -148,6 +159,11 @@ public class DataProcessor : MonoBehaviour
             if (p1.PresentFastOpen is not null) PresentFastOpen = (bool)p1.PresentFastOpen;
             if (p1.LockPresent is not null) LockPresent = (int)p1.LockPresent;
             if (p1.LockWheat is not null) LockWheat = (int)p1.LockWheat;
+            if (p1.LockPresent1 is not null) LockPresent1 = (int)p1.LockPresent1;
+            if (p1.LockPresent2 is not null) LockPresent2 = (int)p1.LockPresent2;
+            if (p1.LockPresent3 is not null) LockPresent3 = (int)p1.LockPresent3;
+            if (p1.LockPresent4 is not null) LockPresent4 = (int)p1.LockPresent4;
+            if (p1.LockPresent5 is not null) LockPresent5= (int)p1.LockPresent5;
             if (p1.FastShooting is not null) FastShooting = (bool)p1.FastShooting;
             if (p1.HardPlant is not null) HardPlant = (bool)p1.HardPlant;
             if (p1.NoHole is not null) NoHole = (bool)p1.NoHole;
@@ -258,6 +274,13 @@ public class DataProcessor : MonoBehaviour
 
             if (!InGame()) return;
 
+            if (iga.PvE == true)
+            {
+                iga.ClearAllHoles = true;
+                iga.ClearAllIceRoads = true;
+                iga.ClearAllPlants = true;
+                iga.ClearAllZombies = true;
+            }
             if (iga.Row is not null && iga.Column is not null && iga.PlantType is not null && iga.Times is not null)
             {
                 var id = (int)iga.PlantType;
@@ -1129,6 +1152,22 @@ all");
             if (iga.CreateMower is not null) GameAPP.board.GetComponent<InitBoard>().InitMower();
 
             if (iga.SetAward is not null) Lawnf.SetAward(Board.Instance, Vector2.zero);
+
+            if (iga.PvE == true)
+            {
+                CreatePlant.Instance.SetPlant(0, 2, (PlantType)256);
+                CreatePlant.Instance.SetPlant(1, 2, (PlantType)256);
+                CreatePlant.Instance.SetPlant(2, 2, (PlantType)256);
+                CreatePlant.Instance.SetPlant(3, 2, (PlantType)256);
+                CreatePlant.Instance.SetPlant(4, 2, (PlantType)256);
+                
+                CreateZombie.Instance.SetZombie(2, ZombieType.RandomGargantuar, 8);
+                CreateZombie.Instance.SetZombie(2, ZombieType.RandomPlusZombie, 8);
+                CreateZombie.Instance.SetZombie(2, ZombieType.RandomPlusZombie, 8);
+                CreateZombie.Instance.SetZombie(2, ZombieType.RandomPlusZombie, 8);
+                CreateZombie.Instance.SetZombie(2, ZombieType.RandomPlusZombie, 8);
+                CreateZombie.Instance.SetZombie(2, ZombieType.DiamondRandomZombie, 8);
+            }
         }
 
         if (data is GameModes ga)

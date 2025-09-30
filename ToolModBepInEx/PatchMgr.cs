@@ -813,11 +813,14 @@ public static class ZombiePatch
 [HarmonyPatch(typeof(Mouse), nameof(Mouse.TryToSetPlantByGlove))]
 public static class MousePatch
 {
+    private static Plant aa = null;
+    
     [HarmonyPrefix]
     public static bool Prefix(Mouse __instance)
     {
         if (ColumnGlove)
         {
+            aa = __instance.thePlantOnGlove;   
             int vcol = __instance.theMouseColumn - __instance.thePlantOnGlove.thePlantColumn;
             int newCol = __instance.theMouseColumn;
             List<Plant> plants = new List<Plant>();
@@ -829,7 +832,8 @@ public static class MousePatch
                     if(plant == __instance.thePlantOnGlove){}
                     else
                     {
-                        plants.Add(plant);
+                        if(plant.thePlantType == __instance.thePlantOnGlove.thePlantType)
+                            plants.Add(plant);
                     }
                 }
             }
@@ -837,14 +841,36 @@ public static class MousePatch
             {
                 GameObject gameObject =
                     CreatePlant.Instance.SetPlant(newCol, plant.thePlantRow, plant.thePlantType);
-                if (gameObject != null && gameObject.TryGetComponent<Plant>(out var component) && component != null)
+                if (Board.Instance.boardTag.isColumn)
                 {
-                    Board.Instance.plantArray.Remove(plant);
-                    plant.Die(Plant.DieReason.ByMix);
+                    for (int i = 0; i < 5; i++)
+                    {
+                        CreatePlant.Instance.SetPlant(__instance.thePlantOnGlove.thePlantColumn, i, plant.thePlantType);
+                    }
+                }
+                else
+                {
+                    if (gameObject != null && gameObject.TryGetComponent<Plant>(out var component) && component != null)
+                    {
+                        Board.Instance.plantArray.Remove(plant);
+                        plant.Die(Plant.DieReason.ByMix);
+                    }
                 }
             }
         }
         return true;
+    }
+
+    [HarmonyPostfix]
+    public static void Postfix(Mouse __instance)
+    {
+        if (ColumnGlove)
+        {
+            if (Board.Instance.boardTag.isColumn)
+            {
+                CreatePlant.Instance.SetPlant(aa.thePlantColumn, aa.thePlantRow, aa.thePlantType);
+            }
+        }
     }
 }
 
