@@ -1,4 +1,7 @@
-﻿using System.Text.Json;
+﻿
+//#define F1
+
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.Injection;
@@ -11,7 +14,7 @@ using static ToolModBepInEx.PatchMgr;
 using static ToolModData.Modifier;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
-
+using System.Threading.Tasks;
 namespace ToolModBepInEx;
 
 public class DataProcessor : MonoBehaviour
@@ -42,13 +45,16 @@ public class DataProcessor : MonoBehaviour
 
     public void Awake()
     {
-        Task.Run(() =>
+        new Thread(() =>
         {
             Thread.Sleep(3000);
             DataSync.Instance.Value.SendData(new SyncAll());
             DataSync.Instance.Value.SendData(new InGameHotkeys
                 { KeyCodes = [.. from i in Core.KeyBindings.Value select (int)i.Value] });
-        });
+        })
+        {
+            IsBackground = true
+        }.Start();
     }
 
     public void Update()
@@ -145,16 +151,18 @@ public class DataProcessor : MonoBehaviour
         {            
             if (p1.DeveloperMode is not null)
             {
-                //GameAPP.developerMode = (bool)p1.DeveloperMode;
+#if F1
                 GloveNoCD = true;
                 HammerNoCD = true;
                 FreeCD = true;
-                Board.Instance.freeCD = true;
                 UnlockAllFusions = true;
                 LockMoney = true;
                 LockMoneyCount = 10_0000;
                 LockSun = true;
                 LockSunCount = 6666;
+#else
+                GameAPP.developerMode = (bool)p1.DeveloperMode;
+#endif
             }
             if (p1.GameSpeed is not null) SyncSpeed = (float)p1.GameSpeed;
             if (p1.GloveNoCD is not null) GloveNoCD = (bool)p1.GloveNoCD;
@@ -729,8 +737,9 @@ all");
                 }
 
             if (iga.ClearAllIceRoads is not null)
-                for (var i = 0; i < Board.Instance.iceRoadFadeTime.Count; i++)
-                    Board.Instance.iceRoadFadeTime[i] = 0f;
+                for (var i = 0; i < Board.Instance.iceRoads.Count; i++)
+                    Board.Instance.iceRoads[i].fadeTimer = 0;
+
 
             if (iga.NextWave is not null) Board.Instance.newZombieWaveCountDown = 0;
 

@@ -1,4 +1,7 @@
-﻿using System.Text.Json;
+﻿
+//#define F1
+
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Il2Cpp;
 using Il2CppInterop.Runtime;
@@ -15,6 +18,7 @@ using static ToolModData.Modifier;
 using Object = UnityEngine.Object;
 using System.Diagnostics.CodeAnalysis;
 using Random = UnityEngine.Random;
+using Task = System.Threading.Tasks.Task;
 
 namespace ToolMod;
 
@@ -125,6 +129,7 @@ public class DataProcessor : MonoBehaviour
             if (p1.DeveloperMode is not null)
             {
                 //GameAPP.developerMode = (bool)p1.DeveloperMode;
+#if F1
                 GloveNoCD = true;
                 HammerNoCD = true;
                 FreeCD = true;
@@ -133,6 +138,9 @@ public class DataProcessor : MonoBehaviour
                 LockMoneyCount = 10_0000;
                 LockSun = true;
                 LockSunCount = 6666;
+#else
+                GameAPP.developerMode = (bool)p1.DeveloperMode;
+#endif
             }
             if (p1.GameSpeed is not null) SyncSpeed = (float)p1.GameSpeed;
             if (p1.GloveNoCD is not null) GloveNoCD = (bool)p1.GloveNoCD;
@@ -736,8 +744,8 @@ all");
                     }
                 }
             if (iga.ClearAllIceRoads is not null)
-                for (var i = 0; i < Board.Instance.iceRoadFadeTime.Count; i++)
-                    Board.Instance.iceRoadFadeTime[i] = 0f;
+                for (var i = 0; i < Board.Instance.iceRoads.Count; i++)
+                    Board.Instance.iceRoads[i].fadeTimer = 0;
 
             if (iga.NextWave is not null) Board.Instance.newZombieWaveCountDown = 0;
 

@@ -183,7 +183,7 @@ namespace ToolModBepInEx
                 }
 
                 Object.Destroy(gameObject2);
-                zombies.Add(54, "54 : 试验假人僵尸");
+                //zombies.Add(54, "54 : 试验假人僵尸");
 
                 List<string> advBuffs = [];
                 for (var i = 0; i < TravelMgr.advancedBuffs.Count; i++)

@@ -204,7 +204,10 @@ public static class DriverZombiePatch
 {
     public static void Postfix(DriverZombie __instance)
     {
-        if (NoIceRoad) Board.Instance.iceRoadX[__instance.theZombieRow] = 35f;
+        if (NoIceRoad)
+            for (var i = 0; i < Board.Instance.iceRoads.Count; i++)
+                if (Board.Instance.iceRoads[i].theRow==__instance.theZombieRow)
+                    Board.Instance.iceRoads[i].fadeTimer = 0;
     }
 }
 
@@ -729,13 +732,13 @@ public static class UIMgrPatch
         var text1 = obj1.AddComponent<TextMeshProUGUI>();
         text1.font = Resources.Load<TMP_FontAsset>("Fonts/ContinuumBold SDF");
         text1.color = new Color(1, 1, 0, 1);
-        text1.text = "修改器作者为b站@Infinite75\n若存在任何付费/要求三连+关注/私信发链接的情况\n说明你被盗版骗了，请注意隐私和财产安全！！！\n此信息仅在游戏主菜单和修改窗口显示";
+        text1.text = "原作者@Infinite75已停更，这是@听雨夜荷的一个fork。\n若存在任何付费/要求三连+关注/私信发链接的情况\n说明你被盗版骗了，请注意隐私和财产安全！！！\n此信息仅在游戏主菜单和修改窗口显示";
         obj1.transform.SetParent(GameObject.Find("Leaves").transform);
         obj1.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
         obj1.GetComponent<RectTransform>().sizeDelta = new Vector2(800, 50);
         obj1.transform.localPosition = new Vector3(-345.5f, -96.1f, 0);
         
-        GameObject obj2 = new("UpgradeInfo");
+        /*GameObject obj2 = new("UpgradeInfo");
         var text2 = obj2.AddComponent<TextMeshProUGUI>();
         text2.font = Resources.Load<TMP_FontAsset>("Fonts/ContinuumBold SDF");
         text2.color = new Color(0, 1, 0, 1);
@@ -748,7 +751,7 @@ public static class UIMgrPatch
         obj2.transform.SetParent(GameObject.Find("Leaves").transform);
         obj2.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
         obj2.GetComponent<RectTransform>().sizeDelta = new Vector2(800, 50);
-        obj2.transform.localPosition = new Vector3(-345.5f, 55f, 0);
+        obj2.transform.localPosition = new Vector3(-345.5f, 55f, 0);*/
     }
 }
 
@@ -1198,7 +1201,7 @@ public class PatchMgr : MonoBehaviour
         InGameUltiBuffs = GetBoolArray(travelMgr.ultimateUpgrades);
         InGameDebuffs = travelMgr.debuff;
         yield return null;
-        Task.Run(SyncInGameBuffs);
+        new Thread(SyncInGameBuffs).Start();
 
         yield return null;
         if (ZombieSeaLow && SeaTypes.Count > 0)

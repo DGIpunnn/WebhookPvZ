@@ -21,8 +21,8 @@ public static class ModifierVersion
     public static string Version => "<#= major #>.<#= minor #>.<#= build #>";
 } 
 <#+
-    private readonly int major = 3;
-    private readonly int minor = 29;
-    private int build = 1;
-    private readonly string gameVersion = "2.8.2";
+    private readonly int major = 4;
+    private readonly int minor = 0;
+    private int build = 0;
+    private readonly string gameVersion = "3.0.1";
 #>

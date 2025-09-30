@@ -212,7 +212,7 @@ public class Core : MelonMod
             almz.info = info2;
             almz.zombieName = name2;
             almz.introduce = info2.AddComponent<TextMeshPro>();
-            ;
+            
 
             for (var i = 0; i < GameAPP.resourcesManager.allZombieTypes.Count; i++)
             {
@@ -231,7 +231,7 @@ public class Core : MelonMod
             }
 
             Object.Destroy(gameObject2);
-            zombies.Add(54, "54 : 试验假人僵尸");
+            //zombies.Add(54, "54 : 试验假人僵尸");
 
             List<string> advBuffs = [];
             for (var i = 0; i < TravelMgr.advancedBuffs.Count; i++)
