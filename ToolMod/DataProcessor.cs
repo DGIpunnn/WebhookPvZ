@@ -263,7 +263,7 @@ public class DataProcessor : MonoBehaviour
             {
                 FruitNinjaManager.Instance.AddScore(114514);
             }
-            
+
             
             if (iga.StopSummon is not null) StopSummon = (bool)iga.StopSummon;
 
@@ -271,8 +271,8 @@ public class DataProcessor : MonoBehaviour
 
             if (iga.AbyssCheat is not null)
             {
-                GameAPP.gameAPP.GetComponent<AbyssManager>().money = 99999999;
-                GameAPP.gameAPP.GetComponent<AbyssManager>().refreshCount = 99999999;
+                GameAPP.gameAPP.GetComponent<AbyssManager>().Money = 99999999;
+                GameObject.Find("AbyssSelectBuffMenu(Clone)").GetComponent<AbyssSelectBuffMenu>().refreshCount = 99999999;
                 GameAPP.gameAPP.GetComponent<AbyssManager>().maxPlantCount = 99999999;
             }
 

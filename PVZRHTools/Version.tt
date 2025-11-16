@@ -9,7 +9,7 @@
     var matches = pattern.Matches(output);
     if (matches.Count != 0)
     {
-        build = Convert.ToInt32(matches[0].Groups["b"].Value) + 1;
+        build = Convert.ToInt32(matches[0].Groups["b"].Value) +1 ;
     }
 #>
 //ver<#= build #>
@@ -24,5 +24,5 @@ public static class ModifierVersion
     private readonly int major = 4;
     private readonly int minor = 0;
     private int build = 0;
-    private readonly string gameVersion = "3.0.1";
+    private readonly string gameVersion = "3.1.1";
 #>

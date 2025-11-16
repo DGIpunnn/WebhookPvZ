@@ -727,7 +727,7 @@ public static class CreatePlantPatchB
     public static void Postfix(ref bool __result) => __result = !UnlockAllFusions && __result;
 }
 */
-
+#if !D
 [HarmonyPatch(typeof(UIMgr), "EnterMainMenu")]
 public static class UIMgrPatch
 {
@@ -759,7 +759,7 @@ public static class UIMgrPatch
         obj2.transform.localPosition = new Vector3(-345.5f, 55f, 0);*/
     }
 }
-
+#endif
 public class CustomIZData
 {
     public List<ZombieData>? Zombies { get; set; }

@@ -6,17 +6,16 @@
 
 ## 修改器更新日志
 
-### · 3.0.1-4.0.0
-1. 适配3.0.1
-2. 删除了花园修改器
-3. 僵尸海功能废了，不会修
+### · 3.1.1-4.0.1
+1. 适配3.1.1
+2. 摆烂
 
 ### 往前的更新日志请去“修改器更新日志.txt”查看
 
 # PVZRHTools
 
 植物大战僵尸融合版修改器 by [@Infinite75](https://space.bilibili.com/672619350)  [@听雨夜荷](https://space.bilibili.com/3537110030092294)    
-适配游戏版本3.0.1
+适配游戏版本3.1.1
 已构建版本的链接在b站视频简介中
 
 模组部分基于[MelonLoader](https://github.com/LavaGang/MelonLoader)与[BepInEx](https://github.com/BepInEx/BepInEx)

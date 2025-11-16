@@ -277,8 +277,9 @@ public class DataProcessor : MonoBehaviour
             if (iga.ConveyBeltTypes is not null) ConveyBeltTypes = iga.ConveyBeltTypes;
             if (iga.AbyssCheat is not null)
             {
-                GameAPP.gameAPP.GetComponent<AbyssManager>().money = 99999999;
-                GameAPP.gameAPP.GetComponent<AbyssManager>().refreshCount = 99999999;
+                GameAPP.gameAPP.GetComponent<AbyssManager>().Money = 99999999;
+                GameObject.Find("AbyssSelectBuffMenu(Clone)").GetComponent<AbyssSelectBuffMenu>().refreshCount =
+                    99999999;
                 GameAPP.gameAPP.GetComponent<AbyssManager>().maxPlantCount = 99999999;
             }
 
