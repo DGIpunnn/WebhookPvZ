@@ -1,0 +1,12 @@
+/workspace/PvZFusionWebhookPlugin/bin/Debug/net46/PvZFusionWebhookPlugin.dll
+/workspace/PvZFusionWebhookPlugin/bin/Debug/net46/PvZFusionWebhookPlugin.pdb
+/workspace/PvZFusionWebhookPlugin/bin/Debug/net46/Newtonsoft.Json.dll
+/workspace/PvZFusionWebhookPlugin/obj/Debug/net46/PvZFusionWebhookPlugin.csproj.AssemblyReference.cache
+/workspace/PvZFusionWebhookPlugin/obj/Debug/net46/PluginInfo.cs
+/workspace/PvZFusionWebhookPlugin/obj/Debug/net46/PvZFusionWebhookPlugin.GeneratedMSBuildEditorConfig.editorconfig
+/workspace/PvZFusionWebhookPlugin/obj/Debug/net46/PvZFusionWebhookPlugin.AssemblyInfoInputs.cache
+/workspace/PvZFusionWebhookPlugin/obj/Debug/net46/PvZFusionWebhookPlugin.AssemblyInfo.cs
+/workspace/PvZFusionWebhookPlugin/obj/Debug/net46/PvZFusionWebhookPlugin.csproj.CoreCompileInputs.cache
+/workspace/PvZFusionWebhookPlugin/obj/Debug/net46/PvZFusionWebhookPlugin.csproj.CopyComplete
+/workspace/PvZFusionWebhookPlugin/obj/Debug/net46/PvZFusionWebhookPlugin.dll
+/workspace/PvZFusionWebhookPlugin/obj/Debug/net46/PvZFusionWebhookPlugin.pdb

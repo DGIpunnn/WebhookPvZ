@@ -13,6 +13,89 @@ using System.Threading;
 
 namespace WebhookPvZFusion
 {
+    // Mock enums for PlantType and ZombieType - these would be defined in the actual game
+    public enum PlantType
+    {
+        Peashooter, Sunflower, CherryBomb, Wallnut, PotatoMine, SnowPea, Chomper, Repeater,
+        Puffshroom, Sunshroom, Fumeshroom, GraveBuster, Hypnoshroom, Scaredyshroom, Iceberg,
+        Doomshroom, LilyPad, Squash, Threepeater, TangleKelp, Jalapeno, Spikeweed, Torchwood,
+        Tallnut, Seashroom, Plantern, Cactus, Blover, SplitPea, Starfruit, Pumpkin, Magnetshroom,
+        Cabbagepult, FlowerPot, KernelPult, CoffeeBean, Garlic, Umbrella, Marigold, MelonPult,
+        GatlingPea, TwinSunflower, Gloomshroom, Cattail, WinterMelon, GoldMagnet, Spikerock,
+        CobCannon, Imitater
+    }
+
+    public enum ZombieType
+    {
+        Nothing, NormalZombie, ConeheadZombie, PoleVaultingZombie, BucketheadZombie, NewspaperZombie,
+        ScreenDoorZombie, FootballZombie, DancingZombie, BackupDancer, DuckyTubeZombie, SnorkelZombie,
+        ZombieBobsledTeam, DolphinRiderZombie, JackintheBoxZombie, BalloonZombie, DiggerZombie,
+        PogoZombie, ZombieYeti, BungeeZombie, LadderZombie, CatapultZombie, Gargantuar, Imp
+    }
+
+    // Mock classes for CreatePlant and CreateZombie - these would be defined in the actual game
+    public class CreatePlant
+    {
+        public static CreatePlant Instance { get; private set; }
+
+        static CreatePlant()
+        {
+            Instance = new CreatePlant();
+        }
+
+        public GameObject SetPlant(int column, int row, PlantType plantType)
+        {
+            // Mock implementation - in the real game, this would create the actual plant
+            Debug.Log($"Creating plant {plantType} at column {column}, row {row}");
+            return new GameObject($"Plant_{plantType}");
+        }
+    }
+
+    public class CreateZombie
+    {
+        public static CreateZombie Instance { get; private set; }
+
+        static CreateZombie()
+        {
+            Instance = new CreateZombie();
+        }
+
+        public GameObject SetZombie(int row, ZombieType zombieType, float x)
+        {
+            // Mock implementation - in the real game, this would create the actual zombie
+            Debug.Log($"Creating zombie {zombieType} at row {row}, x {x}");
+            return new GameObject($"Zombie_{zombieType}");
+        }
+
+        public GameObject SetZombieWithMindControl(int row, ZombieType zombieType, float x)
+        {
+            // Mock implementation - in the real game, this would create the actual zombie with mind control
+            Debug.Log($"Creating mind-controlled zombie {zombieType} at row {row}, x {x}");
+            return new GameObject($"MindControlZombie_{zombieType}");
+        }
+    }
+
+    public class Mouse
+    {
+        public static Mouse Instance { get; private set; }
+
+        static Mouse()
+        {
+            Instance = new Mouse();
+        }
+
+        public float GetBoxXFromColumn(int column)
+        {
+            // Mock implementation - returns a position based on the column
+            return -2.5f + (column * 1.0f); // Assuming each column is 1.0f units wide
+        }
+
+        public float GetLandY(float x, int row)
+        {
+            // Mock implementation - returns a position based on the row
+            return 1.0f - (row * 0.5f); // Assuming each row is 0.5f units tall
+        }
+    }
     [BepInPlugin("id.webhook.pvzfusion", "Webhook PvZ Fusion", "1.1.0")]
     public class PvZFusionWebhookPlugin : BaseUnityPlugin
     {
@@ -22,7 +105,7 @@ namespace WebhookPvZFusion
         private bool isRunning = false;
         private ManualLogSource logSource;
 
-        // Plant and zombie spawn functions (placeholders - will be replaced with actual game functions)
+        // Plant and zombie spawn functions
         private Dictionary<string, System.Action<int, int>> plantSpawners = new Dictionary<string, System.Action<int, int>>();
         private Dictionary<string, System.Action<int, int>> zombieSpawners = new Dictionary<string, System.Action<int, int>>();
 
@@ -375,13 +458,55 @@ namespace WebhookPvZFusion
         private void SpawnPlant(string plantId, int row, int col)
         {
             Logger.LogInfo($"Spawning plant {plantId} at row {row}, col {col}");
-            // Actual game implementation would go here
+            // Convert plant ID string to PlantType enum
+            if (Enum.TryParse<PlantType>(plantId, out PlantType plantType))
+            {
+                // Calculate the X and Y positions based on the row and column
+                float x = Mouse.Instance.GetBoxXFromColumn(col);
+                float y = Mouse.Instance.GetLandY(x, row);
+                
+                // Spawn the plant using the actual game function
+                GameObject plantObject = CreatePlant.Instance.SetPlant(col, row, plantType);
+                if (plantObject != null)
+                {
+                    Logger.LogInfo($"Successfully spawned plant {plantId} at row {row}, col {col}");
+                }
+                else
+                {
+                    Logger.LogWarning($"Failed to spawn plant {plantId} at row {row}, col {col}");
+                }
+            }
+            else
+            {
+                Logger.LogError($"Invalid plant type: {plantId}");
+            }
         }
 
         private void SpawnZombie(string zombieId, int row, int col)
         {
             Logger.LogInfo($"Spawning zombie {zombieId} at row {row}, col {col}");
-            // Actual game implementation would go here
+            // Convert zombie ID string to ZombieType enum
+            if (Enum.TryParse<ZombieType>(zombieId, out ZombieType zombieType))
+            {
+                // Calculate the X position for the zombie spawn
+                // Zombies typically spawn from the right side of the screen
+                float x = 10f; // Right side of the board
+                
+                // Spawn the zombie using the actual game function
+                GameObject zombieObject = CreateZombie.Instance.SetZombie(row, zombieType, x);
+                if (zombieObject != null)
+                {
+                    Logger.LogInfo($"Successfully spawned zombie {zombieType} at row {row}");
+                }
+                else
+                {
+                    Logger.LogWarning($"Failed to spawn zombie {zombieType} at row {row}");
+                }
+            }
+            else
+            {
+                Logger.LogError($"Invalid zombie type: {zombieId}");
+            }
         }
     }
 

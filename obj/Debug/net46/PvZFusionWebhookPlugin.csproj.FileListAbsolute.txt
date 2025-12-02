@@ -1,0 +1,6 @@
+/workspace/obj/Debug/net46/PvZFusionWebhookPlugin.csproj.AssemblyReference.cache
+/workspace/obj/Debug/net46/PluginInfo.cs
+/workspace/obj/Debug/net46/PvZFusionWebhookPlugin.GeneratedMSBuildEditorConfig.editorconfig
+/workspace/obj/Debug/net46/PvZFusionWebhookPlugin.AssemblyInfoInputs.cache
+/workspace/obj/Debug/net46/PvZFusionWebhookPlugin.AssemblyInfo.cs
+/workspace/obj/Debug/net46/PvZFusionWebhookPlugin.csproj.CoreCompileInputs.cache
