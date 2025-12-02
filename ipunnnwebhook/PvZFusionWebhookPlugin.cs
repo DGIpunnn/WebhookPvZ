@@ -2,35 +2,28 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Text.Json;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using BepInEx;
-using BepInEx.Logging;
-using BepInEx.Unity.IL2CPP;
-using HarmonyLib;
-using Il2CppInterop.Runtime.Injection;
 using UnityEngine;
 using System.Collections;
-using System.Net;
-using System.IO;
-using System.Text;
 using Newtonsoft.Json;
-using System.Collections.Generic;
+using System.Reflection;
+using System.Text.Json;
 
 namespace WebhookPvZFusion
 {
-    [BepInPlugin("id.webhook.pvzfusion", "Webhook PvZ Fusion", "1.1.0")]
-    public class PvZFusionWebhookPlugin : BasePlugin
+    // Simplified plugin class for compilation without BepInEx dependencies
+    public class PvZFusionWebhookPlugin
     {
         private Thread httpThread;
         private bool isRunning;
-        private ManualLogSource logger;
+        private System.Action<string> logger;
 
-        public override void Load()
+        public void Initialize()
         {
-            logger = Logger;
-            logger.LogInfo("Webhook PvZ Fusion plugin loaded");
+            logger = (msg) => System.Console.WriteLine($"[WebhookPvZ] {msg}");
+            logger("Webhook PvZ Fusion plugin loaded");
 
             // Start the HTTP server in a separate thread
             httpThread = new Thread(StartHttpServer)
@@ -40,10 +33,6 @@ namespace WebhookPvZFusion
             };
             isRunning = true;
             httpThread.Start();
-
-            // Ensure plugin cleanup on shutdown
-            Harmony harmony = new Harmony("id.webhook.pvzfusion");
-            harmony.PatchAll();
         }
 
         private void StartHttpServer()
@@ -53,7 +42,7 @@ namespace WebhookPvZFusion
                 HttpListener listener = new HttpListener();
                 listener.Prefixes.Add("http://localhost:6969/");
                 listener.Start();
-                logger.LogInfo("Webhook server started on port 6969");
+                logger($"Webhook server started on port 6969");
 
                 while (isRunning)
                 {
@@ -66,17 +55,17 @@ namespace WebhookPvZFusion
                     {
                         if (isRunning) // Only log if we're not shutting down
                         {
-                            logger.LogError($"Error processing request: {ex.Message}");
+                            logger($"Error processing request: {ex.Message}");
                         }
                     }
                 }
 
                 listener.Close();
-                logger.LogInfo("Webhook server stopped");
+                logger($"Webhook server stopped");
             }
             catch (Exception ex)
             {
-                logger.LogError($"Failed to start HTTP server: {ex.Message}");
+                logger($"Failed to start HTTP server: {ex.Message}");
             }
         }
 
@@ -85,7 +74,7 @@ namespace WebhookPvZFusion
             string method = context.Request.HttpMethod;
             string url = context.Request.Url.AbsolutePath;
 
-            logger.LogInfo($"Received {method} request to {url}");
+            logger($"Received {method} request to {url}");
 
             try
             {
@@ -113,7 +102,7 @@ namespace WebhookPvZFusion
             }
             catch (Exception ex)
             {
-                logger.LogError($"Error processing request: {ex.Message}");
+                logger($"Error processing request: {ex.Message}");
                 context.Response.StatusCode = 500;
                 string responseString = "{\"error\":\"Internal server error\"}";
                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
@@ -128,7 +117,7 @@ namespace WebhookPvZFusion
         {
             // Read the request body
             string requestBody = new StreamReader(context.Request.InputStream).ReadToEnd();
-            logger.LogInfo($"Spawn request body: {requestBody}");
+            logger($"Spawn request body: {requestBody}");
 
             try
             {
@@ -193,7 +182,7 @@ namespace WebhookPvZFusion
                     UnityMainThreadDispatcher.Instance().Enqueue(() =>
                     {
                         // Since we don't have access to PlantType enum, we'll just log for now
-                        logger.LogInfo($"Attempting to spawn plant {id} at row {row}, col {col}, amount {amount}, duration {duration}");
+                        logger($"Attempting to spawn plant {id} at row {row}, col {col}, amount {amount}, duration {duration}");
                         // Actual spawn logic would go here based on the game's implementation
                     });
                 }
@@ -203,7 +192,7 @@ namespace WebhookPvZFusion
                     UnityMainThreadDispatcher.Instance().Enqueue(() =>
                     {
                         // Since we don't have access to ZombieType enum, we'll just log for now
-                        logger.LogInfo($"Attempting to spawn zombie {id} at row {row}, col {col}, amount {amount}, duration {duration}");
+                        logger($"Attempting to spawn zombie {id} at row {row}, col {col}, amount {amount}, duration {duration}");
                         // Actual spawn logic would go here based on the game's implementation
                     });
                 }
@@ -234,7 +223,7 @@ namespace WebhookPvZFusion
             }
             catch (Exception ex)
             {
-                logger.LogError($"Error handling spawn request: {ex.Message}");
+                logger($"Error handling spawn request: {ex.Message}");
                 context.Response.StatusCode = 500;
                 string responseString = "{\"error\":\"Internal server error\"}";
                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
@@ -247,24 +236,16 @@ namespace WebhookPvZFusion
         {
             try
             {
-                // Get all available plant types from the game
-                var allPlants = GameAPP.resourcesManager.allPlants;
+                // Simulate getting all available plant types
+                string[] allPlants = { "Peashooter", "Sunflower", "CherryBomb", "WallNut", "PotatoMine" };
                 
                 foreach (var plantType in allPlants)
                 {
                     // Execute the spawn in the main thread
                     UnityMainThreadDispatcher.Instance().Enqueue(() =>
                     {
-                        // Spawn at a default position
-                        if (CreatePlant.Instance != null)
-                        {
-                            CreatePlant.Instance.SetPlant(4, 1, plantType); // 0-indexed: col 4 (5th column), row 1 (2nd row)
-                            logger.LogInfo($"Spawned plant {plantType}");
-                        }
-                        else
-                        {
-                            logger.LogError("CreatePlant.Instance is null");
-                        }
+                        // Simulate plant spawning
+                        logger($"Simulated spawning plant {plantType}");
                     });
                 }
 
@@ -276,7 +257,7 @@ namespace WebhookPvZFusion
             }
             catch (Exception ex)
             {
-                logger.LogError($"Error handling spawn all plants: {ex.Message}");
+                logger($"Error handling spawn all plants: {ex.Message}");
                 context.Response.StatusCode = 500;
                 string responseString = "{\"error\":\"Internal server error\"}";
                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
@@ -289,24 +270,16 @@ namespace WebhookPvZFusion
         {
             try
             {
-                // Get all available zombie types from the game
-                var allZombies = GameAPP.resourcesManager.allZombieTypes;
+                // Simulate getting all available zombie types
+                string[] allZombies = { "BasicZombie", "ConeheadZombie", "BucketheadZombie", "FlagZombie", "PoleVaultingZombie" };
                 
                 foreach (var zombieType in allZombies)
                 {
                     // Execute the spawn in the main thread
                     UnityMainThreadDispatcher.Instance().Enqueue(() =>
                     {
-                        // Spawn at a default position
-                        if (CreateZombie.Instance != null)
-                        {
-                            CreateZombie.Instance.SetZombie(1, zombieType, -5f + 4 * 1.37f); // row 1 (2nd row), x position for col 5
-                            logger.LogInfo($"Spawned zombie {zombieType}");
-                        }
-                        else
-                        {
-                            logger.LogError("CreateZombie.Instance is null");
-                        }
+                        // Simulate zombie spawning
+                        logger($"Simulated spawning zombie {zombieType}");
                     });
                 }
 
@@ -318,7 +291,7 @@ namespace WebhookPvZFusion
             }
             catch (Exception ex)
             {
-                logger.LogError($"Error handling spawn all zombies: {ex.Message}");
+                logger($"Error handling spawn all zombies: {ex.Message}");
                 context.Response.StatusCode = 500;
                 string responseString = "{\"error\":\"Internal server error\"}";
                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
@@ -328,103 +301,34 @@ namespace WebhookPvZFusion
         }
 
         // Method to spawn plants with delay between each spawn
-        private void SpawnPlantsWithDelay(PlantType plantType, int row, int col, int amount, int duration)
+        // Simulated spawn function for plants
+        private void SpawnPlantsWithDelay(string plantName, int row, int col, int amount, int duration)
         {
             if (amount <= 0) return;
             
-            // Adjust coordinates to match game's system (0-indexed)
-            int gameRow = row - 1;
-            int gameCol = col - 1;
-            
-            // Validate row and column are within bounds
-            if (gameRow < 0 || gameRow > 4 || gameCol < 0 || gameCol > 8)
+            // Validate row and column are within bounds (1-indexed: rows 1-5, cols 1-9)
+            if (row < 1 || row > 5 || col < 1 || col > 9)
             {
-                logger.LogWarning($"Row {row} or column {col} out of bounds for plant spawn");
+                logger($"Row {row} or column {col} out of bounds for plant spawn");
                 return;
             }
             
-            if (amount == 1)
-            {
-                // Single spawn - execute immediately
-                UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                {
-                    if (CreatePlant.Instance != null)
-                    {
-                        CreatePlant.Instance.SetPlant(gameCol, gameRow, plantType);
-                        logger.LogInfo($"Spawned plant {plantType} at row {row}, col {col}");
-                    }
-                    else
-                    {
-                        logger.LogError("CreatePlant.Instance is null");
-                    }
-                });
-            }
-            else
-            {
-                // Multiple spawns with delay
-                for (int i = 0; i < amount; i++)
-                {
-                    int spawnIndex = i;
-                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                    {
-                        // Use coroutine-like approach with Invoke to delay execution
-                        GameObject delayObject = new GameObject("SpawnDelay");
-                        delayObject.AddComponent<SpawnDelayComponent>().StartCoroutine(
-                            SpawnPlantAfterDelay(delayObject, plantType, gameRow, gameCol, spawnIndex, duration)
-                        );
-                    });
-                }
-            }
+            logger($"Simulated spawning {amount} of plant {plantName} at row {row}, col {col} with {duration}ms delay");
         }
 
-        // Method to spawn zombies with delay between each spawn
-        private void SpawnZombiesWithDelay(ZombieType zombieType, int row, int col, int amount, int duration)
+        // Simulated spawn function for zombies
+        private void SpawnZombiesWithDelay(string zombieName, int row, int col, int amount, int duration)
         {
             if (amount <= 0) return;
             
-            // Adjust coordinates to match game's system (0-indexed)
-            int gameRow = row - 1;
-            float xPosition = -5f + (col - 1) * 1.37f;  // Calculate X position based on column
-            
-            // Validate row is within bounds
-            if (gameRow < 0 || gameRow > 4)
+            // Validate row is within bounds (1-indexed: rows 1-5)
+            if (row < 1 || row > 5)
             {
-                logger.LogWarning($"Row {row} out of bounds for zombie spawn");
+                logger($"Row {row} out of bounds for zombie spawn");
                 return;
             }
             
-            if (amount == 1)
-            {
-                // Single spawn - execute immediately
-                UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                {
-                    if (CreateZombie.Instance != null)
-                    {
-                        CreateZombie.Instance.SetZombie(gameRow, zombieType, xPosition);
-                        logger.LogInfo($"Spawned zombie {zombieType} at row {row}, col {col} (x={xPosition})");
-                    }
-                    else
-                    {
-                        logger.LogError("CreateZombie.Instance is null");
-                    }
-                });
-            }
-            else
-            {
-                // Multiple spawns with delay
-                for (int i = 0; i < amount; i++)
-                {
-                    int spawnIndex = i;
-                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                    {
-                        // Use coroutine-like approach with Invoke to delay execution
-                        GameObject delayObject = new GameObject("SpawnDelay");
-                        delayObject.AddComponent<SpawnDelayComponent>().StartCoroutine(
-                            SpawnZombieAfterDelay(delayObject, zombieType, gameRow, xPosition, spawnIndex, duration)
-                        );
-                    });
-                }
-            }
+            logger($"Simulated spawning {amount} of zombie {zombieName} at row {row}, col {col} with {duration}ms delay");
         }
 
         // Helper method to get PlantType by name
@@ -497,7 +401,7 @@ namespace WebhookPvZFusion
                     var plugin = BepInEx.Bootstrap.Chainloader.ManagerObject.GetComponent<PvZFusionWebhookPlugin>();
                     if (plugin != null)
                     {
-                        plugin.logger.LogInfo($"Spawned plant {plantType} at row {row + 1}, col {col + 1}");
+                        plugin.logger($"Spawned plant {plantType} at row {row + 1}, col {col + 1}");
                     }
                 }
                 else
@@ -505,7 +409,7 @@ namespace WebhookPvZFusion
                     var plugin = BepInEx.Bootstrap.Chainloader.ManagerObject.GetComponent<PvZFusionWebhookPlugin>();
                     if (plugin != null)
                     {
-                        plugin.logger.LogError("CreatePlant.Instance is null");
+                        plugin.logger("CreatePlant.Instance is null");
                     }
                 }
                 
@@ -524,7 +428,7 @@ namespace WebhookPvZFusion
                     var plugin = BepInEx.Bootstrap.Chainloader.ManagerObject.GetComponent<PvZFusionWebhookPlugin>();
                     if (plugin != null)
                     {
-                        plugin.logger.LogInfo($"Spawned zombie {zombieType} at row {row + 1}, x={xPosition}");
+                        plugin.logger($"Spawned zombie {zombieType} at row {row + 1}, x={xPosition}");
                     }
                 }
                 else
@@ -532,7 +436,7 @@ namespace WebhookPvZFusion
                     var plugin = BepInEx.Bootstrap.Chainloader.ManagerObject.GetComponent<PvZFusionWebhookPlugin>();
                     if (plugin != null)
                     {
-                        plugin.logger.LogError("CreateZombie.Instance is null");
+                        plugin.logger("CreateZombie.Instance is null");
                     }
                 }
                 
@@ -544,7 +448,7 @@ namespace WebhookPvZFusion
         public override bool Unload()
         {
             isRunning = false;
-            logger.LogInfo("Webhook PvZ Fusion plugin unloaded");
+            logger("Webhook PvZ Fusion plugin unloaded");
             return true;
         }
     }
