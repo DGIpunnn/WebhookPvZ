@@ -1,398 +1,509 @@
-using BepInEx;
-using BepInEx.Logging;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
-using Newtonsoft.Json;
+using System.Text.Json;
 using System.Threading;
+using BepInEx;
+using BepInEx.Logging;
+using BepInEx.Unity.IL2CPP;
+using HarmonyLib;
+using Il2CppInterop.Runtime.Injection;
+using UnityEngine;
+using ToolModData;
+using static ToolModBepInEx.PatchMgr;
 
 namespace WebhookPvZFusion
 {
     [BepInPlugin("id.webhook.pvzfusion", "Webhook PvZ Fusion", "1.1.0")]
-    public class PvZFusionWebhookPlugin : BaseUnityPlugin
+    public class PvZFusionWebhookPlugin : BasePlugin
     {
-        private const int PORT = 6969;
-        private HttpListener httpListener;
-        private Thread listenerThread;
-        private bool isRunning = false;
-        private ManualLogSource logSource;
+        private Thread httpThread;
+        private bool isRunning;
+        private ManualLogSource logger;
 
-        // Plant and zombie spawn functions (placeholders - will be replaced with actual game functions)
-        private Dictionary<string, System.Action<int, int>> plantSpawners = new Dictionary<string, System.Action<int, int>>();
-        private Dictionary<string, System.Action<int, int>> zombieSpawners = new Dictionary<string, System.Action<int, int>>();
-
-        void Awake()
+        public override void Load()
         {
-            logSource = Logger;
-            InitializeSpawners();
-            StartHttpListener();
+            logger = Logger;
+            logger.LogInfo("Webhook PvZ Fusion plugin loaded");
+
+            // Start the HTTP server in a separate thread
+            httpThread = new Thread(StartHttpServer)
+            {
+                IsBackground = true,
+                Name = "WebhookHttpServer"
+            };
+            isRunning = true;
+            httpThread.Start();
+
+            // Ensure plugin cleanup on shutdown
+            Harmony harmony = new Harmony("id.webhook.pvzfusion");
+            harmony.PatchAll();
         }
 
-        void OnDestroy()
-        {
-            StopHttpListener();
-        }
-
-        private void InitializeSpawners()
-        {
-            // Initialize plant spawners - these would be replaced with actual game functions
-            plantSpawners.Add("Peashooter", (row, col) => SpawnPlant("Peashooter", row, col));
-            plantSpawners.Add("Sunflower", (row, col) => SpawnPlant("Sunflower", row, col));
-            plantSpawners.Add("CherryBomb", (row, col) => SpawnPlant("CherryBomb", row, col));
-            plantSpawners.Add("Wallnut", (row, col) => SpawnPlant("Wallnut", row, col));
-            plantSpawners.Add("PotatoMine", (row, col) => SpawnPlant("PotatoMine", row, col));
-            plantSpawners.Add("SnowPea", (row, col) => SpawnPlant("SnowPea", row, col));
-            plantSpawners.Add("Chomper", (row, col) => SpawnPlant("Chomper", row, col));
-            plantSpawners.Add("Repeater", (row, col) => SpawnPlant("Repeater", row, col));
-            plantSpawners.Add("Puffshroom", (row, col) => SpawnPlant("Puffshroom", row, col));
-            plantSpawners.Add("Sunshroom", (row, col) => SpawnPlant("Sunshroom", row, col));
-            plantSpawners.Add("Fumeshroom", (row, col) => SpawnPlant("Fumeshroom", row, col));
-            plantSpawners.Add("GraveBuster", (row, col) => SpawnPlant("GraveBuster", row, col));
-            plantSpawners.Add("Hypnoshroom", (row, col) => SpawnPlant("Hypnoshroom", row, col));
-            plantSpawners.Add("Scaredyshroom", (row, col) => SpawnPlant("Scaredyshroom", row, col));
-            plantSpawners.Add("Iceberg", (row, col) => SpawnPlant("Iceberg", row, col));
-            plantSpawners.Add("Doomshroom", (row, col) => SpawnPlant("Doomshroom", row, col));
-            plantSpawners.Add("LilyPad", (row, col) => SpawnPlant("LilyPad", row, col));
-            plantSpawners.Add("Squash", (row, col) => SpawnPlant("Squash", row, col));
-            plantSpawners.Add("Threepeater", (row, col) => SpawnPlant("Threepeater", row, col));
-            plantSpawners.Add("TangleKelp", (row, col) => SpawnPlant("TangleKelp", row, col));
-            plantSpawners.Add("Jalapeno", (row, col) => SpawnPlant("Jalapeno", row, col));
-            plantSpawners.Add("Spikeweed", (row, col) => SpawnPlant("Spikeweed", row, col));
-            plantSpawners.Add("Torchwood", (row, col) => SpawnPlant("Torchwood", row, col));
-            plantSpawners.Add("Tallnut", (row, col) => SpawnPlant("Tallnut", row, col));
-            plantSpawners.Add("Seashroom", (row, col) => SpawnPlant("Seashroom", row, col));
-            plantSpawners.Add("Plantern", (row, col) => SpawnPlant("Plantern", row, col));
-            plantSpawners.Add("Cactus", (row, col) => SpawnPlant("Cactus", row, col));
-            plantSpawners.Add("Blover", (row, col) => SpawnPlant("Blover", row, col));
-            plantSpawners.Add("SplitPea", (row, col) => SpawnPlant("SplitPea", row, col));
-            plantSpawners.Add("Starfruit", (row, col) => SpawnPlant("Starfruit", row, col));
-            plantSpawners.Add("Pumpkin", (row, col) => SpawnPlant("Pumpkin", row, col));
-            plantSpawners.Add("Magnetshroom", (row, col) => SpawnPlant("Magnetshroom", row, col));
-            plantSpawners.Add("Cabbagepult", (row, col) => SpawnPlant("Cabbagepult", row, col));
-            plantSpawners.Add("FlowerPot", (row, col) => SpawnPlant("FlowerPot", row, col));
-            plantSpawners.Add("KernelPult", (row, col) => SpawnPlant("KernelPult", row, col));
-            plantSpawners.Add("CoffeeBean", (row, col) => SpawnPlant("CoffeeBean", row, col));
-            plantSpawners.Add("Garlic", (row, col) => SpawnPlant("Garlic", row, col));
-            plantSpawners.Add("Umbrella", (row, col) => SpawnPlant("Umbrella", row, col));
-            plantSpawners.Add("Marigold", (row, col) => SpawnPlant("Marigold", row, col));
-            plantSpawners.Add("MelonPult", (row, col) => SpawnPlant("MelonPult", row, col));
-            plantSpawners.Add("GatlingPea", (row, col) => SpawnPlant("GatlingPea", row, col));
-            plantSpawners.Add("TwinSunflower", (row, col) => SpawnPlant("TwinSunflower", row, col));
-            plantSpawners.Add("Gloomshroom", (row, col) => SpawnPlant("Gloomshroom", row, col));
-            plantSpawners.Add("Cattail", (row, col) => SpawnPlant("Cattail", row, col));
-            plantSpawners.Add("WinterMelon", (row, col) => SpawnPlant("WinterMelon", row, col));
-            plantSpawners.Add("GoldMagnet", (row, col) => SpawnPlant("GoldMagnet", row, col));
-            plantSpawners.Add("Spikerock", (row, col) => SpawnPlant("Spikerock", row, col));
-            plantSpawners.Add("CobCannon", (row, col) => SpawnPlant("CobCannon", row, col));
-            plantSpawners.Add("Imitater", (row, col) => SpawnPlant("Imitater", row, col));
-
-            // Initialize zombie spawners - these would be replaced with actual game functions
-            zombieSpawners.Add("NormalZombie", (row, col) => SpawnZombie("NormalZombie", row, col));
-            zombieSpawners.Add("ConeheadZombie", (row, col) => SpawnZombie("ConeheadZombie", row, col));
-            zombieSpawners.Add("PoleVaultingZombie", (row, col) => SpawnZombie("PoleVaultingZombie", row, col));
-            zombieSpawners.Add("BucketheadZombie", (row, col) => SpawnZombie("BucketheadZombie", row, col));
-            zombieSpawners.Add("NewspaperZombie", (row, col) => SpawnZombie("NewspaperZombie", row, col));
-            zombieSpawners.Add("ScreenDoorZombie", (row, col) => SpawnZombie("ScreenDoorZombie", row, col));
-            zombieSpawners.Add("FootballZombie", (row, col) => SpawnZombie("FootballZombie", row, col));
-            zombieSpawners.Add("DancingZombie", (row, col) => SpawnZombie("DancingZombie", row, col));
-            zombieSpawners.Add("BackupDancer", (row, col) => SpawnZombie("BackupDancer", row, col));
-            zombieSpawners.Add("DuckyTubeZombie", (row, col) => SpawnZombie("DuckyTubeZombie", row, col));
-            zombieSpawners.Add("SnorkelZombie", (row, col) => SpawnZombie("SnorkelZombie", row, col));
-            zombieSpawners.Add("ZombieBobsledTeam", (row, col) => SpawnZombie("ZombieBobsledTeam", row, col));
-            zombieSpawners.Add("DolphinRiderZombie", (row, col) => SpawnZombie("DolphinRiderZombie", row, col));
-            zombieSpawners.Add("JackintheBoxZombie", (row, col) => SpawnZombie("JackintheBoxZombie", row, col));
-            zombieSpawners.Add("BalloonZombie", (row, col) => SpawnZombie("BalloonZombie", row, col));
-            zombieSpawners.Add("DiggerZombie", (row, col) => SpawnZombie("DiggerZombie", row, col));
-            zombieSpawners.Add("PogoZombie", (row, col) => SpawnZombie("PogoZombie", row, col));
-            zombieSpawners.Add("ZombieYeti", (row, col) => SpawnZombie("ZombieYeti", row, col));
-            zombieSpawners.Add("BungeeZombie", (row, col) => SpawnZombie("BungeeZombie", row, col));
-            zombieSpawners.Add("LadderZombie", (row, col) => SpawnZombie("LadderZombie", row, col));
-            zombieSpawners.Add("CatapultZombie", (row, col) => SpawnZombie("CatapultZombie", row, col));
-            zombieSpawners.Add("Gargantuar", (row, col) => SpawnZombie("Gargantuar", row, col));
-            zombieSpawners.Add("Imp", (row, col) => SpawnZombie("Imp", row, col));
-        }
-
-        private void StartHttpListener()
+        private void StartHttpServer()
         {
             try
             {
-                httpListener = new HttpListener();
-                httpListener.Prefixes.Add($"http://localhost:{PORT}/");
-                httpListener.Prefixes.Add($"http://127.0.0.1:{PORT}/");
-                
-                httpListener.Start();
-                isRunning = true;
-                
-                listenerThread = new Thread(HandleRequests);
-                listenerThread.Start();
-                
-                Logger.LogInfo($"Webhook server started on port {PORT}");
+                HttpListener listener = new HttpListener();
+                listener.Prefixes.Add("http://localhost:6969/");
+                listener.Start();
+                logger.LogInfo("Webhook server started on port 6969");
+
+                while (isRunning)
+                {
+                    try
+                    {
+                        HttpListenerContext context = listener.GetContext();
+                        ProcessRequest(context);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (isRunning) // Only log if we're not shutting down
+                        {
+                            logger.LogError($"Error processing request: {ex.Message}");
+                        }
+                    }
+                }
+
+                listener.Close();
+                logger.LogInfo("Webhook server stopped");
             }
             catch (Exception ex)
             {
-                Logger.LogError($"Failed to start HTTP listener: {ex.Message}");
-            }
-        }
-
-        private void StopHttpListener()
-        {
-            isRunning = false;
-            
-            if (httpListener != null && httpListener.IsListening)
-            {
-                httpListener.Stop();
-                httpListener.Close();
-            }
-            
-            if (listenerThread != null)
-            {
-                listenerThread.Join(1000); // Wait up to 1 second for thread to finish
-            }
-            
-            Logger.LogInfo("Webhook server stopped");
-        }
-
-        private void HandleRequests()
-        {
-            while (isRunning)
-            {
-                try
-                {
-                    HttpListenerContext context = httpListener.GetContext();
-                    ProcessRequest(context);
-                }
-                catch (HttpListenerException)
-                {
-                    // This exception is thrown when the listener is stopped
-                    if (isRunning)
-                    {
-                        Logger.LogError("HTTP listener exception occurred");
-                    }
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError($"Error handling request: {ex.Message}");
-                }
+                logger.LogError($"Failed to start HTTP server: {ex.Message}");
             }
         }
 
         private void ProcessRequest(HttpListenerContext context)
         {
-            HttpListenerRequest request = context.Request;
-            HttpListenerResponse response = context.Response;
+            string method = context.Request.HttpMethod;
+            string url = context.Request.Url.AbsolutePath;
 
-            string responseString = "";
-            int statusCode = 200;
+            logger.LogInfo($"Received {method} request to {url}");
 
             try
             {
-                if (request.HttpMethod == "POST" && request.Url.AbsolutePath == "/spawn")
+                if (method == "POST" && url == "/spawn")
                 {
-                    responseString = HandleSpawnRequest(request);
+                    HandleSpawnRequest(context);
                 }
-                else if (request.HttpMethod == "GET" && request.Url.AbsolutePath == "/spawn/all/plants")
+                else if (method == "GET" && url == "/spawn/all/plants")
                 {
-                    responseString = HandleSpawnAllPlantsRequest();
+                    HandleSpawnAllPlants(context);
                 }
-                else if (request.HttpMethod == "GET" && request.Url.AbsolutePath == "/spawn/all/zombies")
+                else if (method == "GET" && url == "/spawn/all/zombies")
                 {
-                    responseString = HandleSpawnAllZombiesRequest();
+                    HandleSpawnAllZombies(context);
                 }
                 else
                 {
-                    statusCode = 404;
-                    responseString = "{\"error\":\"Endpoint not found\"}";
+                    // Return 404 for unsupported endpoints
+                    context.Response.StatusCode = 404;
+                    string responseString = "{\"error\":\"Endpoint not found\"}";
+                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                    context.Response.ContentLength64 = buffer.Length;
+                    context.Response.OutputStream.Write(buffer, 0, buffer.Length);
                 }
             }
             catch (Exception ex)
             {
-                statusCode = 500;
-                responseString = $"{{\"error\":\"{ex.Message}\"}}";
+                logger.LogError($"Error processing request: {ex.Message}");
+                context.Response.StatusCode = 500;
+                string responseString = "{\"error\":\"Internal server error\"}";
+                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                context.Response.ContentLength64 = buffer.Length;
+                context.Response.OutputStream.Write(buffer, 0, buffer.Length);
             }
 
-            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-            response.ContentLength64 = buffer.Length;
-            response.StatusCode = statusCode;
-            response.ContentType = "application/json";
-            
-            using (Stream output = response.OutputStream)
-            {
-                output.Write(buffer, 0, buffer.Length);
-            }
+            context.Response.Close();
         }
 
-        private string HandleSpawnRequest(HttpListenerRequest request)
+        private void HandleSpawnRequest(HttpListenerContext context)
         {
-            string requestBody = new StreamReader(request.InputStream).ReadToEnd();
-            SpawnRequest spawnRequest = JsonConvert.DeserializeObject<SpawnRequest>(requestBody);
+            // Read the request body
+            string requestBody = new StreamReader(context.Request.InputStream).ReadToEnd();
+            logger.LogInfo($"Spawn request body: {requestBody}");
 
-            if (spawnRequest == null)
+            try
             {
-                return "{\"error\":\"Invalid JSON\"}";
-            }
+                // Parse the JSON request
+                using JsonDocument doc = JsonDocument.Parse(requestBody);
+                JsonElement root = doc.RootElement;
 
-            if (spawnRequest.row < 0 || spawnRequest.row > 4 || spawnRequest.col < 0 || spawnRequest.col > 8)
-            {
-                return "{\"error\":\"Invalid row or column position\"}";
-            }
-
-            if (spawnRequest.amount <= 0)
-            {
-                return "{\"error\":\"Amount must be greater than 0\"}";
-            }
-
-            if (spawnRequest.type == "plant")
-            {
-                if (!plantSpawners.ContainsKey(spawnRequest.id))
+                if (!root.TryGetProperty("action", out JsonElement actionElement) || actionElement.GetString() != "spawn")
                 {
-                    return "{\"error\":\"Invalid plant ID\"}";
+                    context.Response.StatusCode = 400;
+                    string responseString = "{\"error\":\"Invalid action\"}";
+                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                    context.Response.ContentLength64 = buffer.Length;
+                    context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                    return;
                 }
 
-                if (spawnRequest.amount == 1)
+                if (!root.TryGetProperty("type", out JsonElement typeElement))
                 {
-                    // Spawn once
-                    SpawnPlantOnMainThread(spawnRequest.id, spawnRequest.row, spawnRequest.col);
+                    context.Response.StatusCode = 400;
+                    string responseString = "{\"error\":\"Type is required\"}";
+                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                    context.Response.ContentLength64 = buffer.Length;
+                    context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                    return;
+                }
+
+                if (!root.TryGetProperty("id", out JsonElement idElement))
+                {
+                    context.Response.StatusCode = 400;
+                    string responseString = "{\"error\":\"ID is required\"}";
+                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                    context.Response.ContentLength64 = buffer.Length;
+                    context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                    return;
+                }
+
+                // Get optional parameters with defaults
+                int row = root.TryGetProperty("row", out JsonElement rowElement) ? rowElement.GetInt32() : 0;
+                int col = root.TryGetProperty("col", out JsonElement colElement) ? colElement.GetInt32() : 0;
+                int amount = root.TryGetProperty("amount", out JsonElement amountElement) ? amountElement.GetInt32() : 1;
+                int duration = root.TryGetProperty("duration", out JsonElement durationElement) ? durationElement.GetInt32() : 0;
+
+                string type = typeElement.GetString();
+                string id = idElement.GetString();
+
+                // Validate row and column
+                if (row < 0 || row > 4 || col < 0 || col > 8)
+                {
+                    context.Response.StatusCode = 400;
+                    string responseString = "{\"error\":\"Row or column out of bounds\"}";
+                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                    context.Response.ContentLength64 = buffer.Length;
+                    context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                    return;
+                }
+
+                // Convert id to PlantType or ZombieType based on type
+                if (type.ToLower() == "plant")
+                {
+                    // Try to find the plant type by name or ID
+                    PlantType? plantType = GetPlantTypeByName(id);
+                    if (plantType.HasValue)
+                    {
+                        // Execute the spawn in the main thread
+                        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                        {
+                            SpawnPlantsWithDelay(plantType.Value, row, col, amount, duration);
+                        });
+                    }
+                    else
+                    {
+                        context.Response.StatusCode = 400;
+                        string responseString = "{\"error\":\"Invalid plant type\"}";
+                        byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                        context.Response.ContentLength64 = buffer.Length;
+                        context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                        return;
+                    }
+                }
+                else if (type.ToLower() == "zombie")
+                {
+                    // Try to find the zombie type by name or ID
+                    ZombieType? zombieType = GetZombieTypeByName(id);
+                    if (zombieType.HasValue)
+                    {
+                        // Execute the spawn in the main thread
+                        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                        {
+                            SpawnZombiesWithDelay(zombieType.Value, row, col, amount, duration);
+                        });
+                    }
+                    else
+                    {
+                        context.Response.StatusCode = 400;
+                        string responseString = "{\"error\":\"Invalid zombie type\"}";
+                        byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                        context.Response.ContentLength64 = buffer.Length;
+                        context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                        return;
+                    }
                 }
                 else
                 {
-                    // Spawn multiple times with delay
-                    StartCoroutine(SpawnPlantRepeatedly(spawnRequest.id, spawnRequest.row, spawnRequest.col, spawnRequest.amount, spawnRequest.duration));
-                }
-            }
-            else if (spawnRequest.type == "zombie")
-            {
-                if (!zombieSpawners.ContainsKey(spawnRequest.id))
-                {
-                    return "{\"error\":\"Invalid zombie ID\"}";
+                    context.Response.StatusCode = 400;
+                    string responseString = "{\"error\":\"Type must be plant or zombie\"}";
+                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                    context.Response.ContentLength64 = buffer.Length;
+                    context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                    return;
                 }
 
-                if (spawnRequest.amount == 1)
-                {
-                    // Spawn once
-                    SpawnZombieOnMainThread(spawnRequest.id, spawnRequest.row, spawnRequest.col);
-                }
-                else
-                {
-                    // Spawn multiple times with delay
-                    StartCoroutine(SpawnZombieRepeatedly(spawnRequest.id, spawnRequest.row, spawnRequest.col, spawnRequest.amount, spawnRequest.duration));
-                }
+                // Success response
+                context.Response.StatusCode = 200;
+                string responseStringSuccess = "{\"success\":true,\"message\":\"Spawn request processed\"}";
+                byte[] bufferSuccess = System.Text.Encoding.UTF8.GetBytes(responseStringSuccess);
+                context.Response.ContentLength64 = bufferSuccess.Length;
+                context.Response.OutputStream.Write(bufferSuccess, 0, bufferSuccess.Length);
             }
-            else
+            catch (JsonException)
             {
-                return "{\"error\":\"Invalid type, must be 'plant' or 'zombie'\"}";
+                context.Response.StatusCode = 400;
+                string responseString = "{\"error\":\"Invalid JSON\"}";
+                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                context.Response.ContentLength64 = buffer.Length;
+                context.Response.OutputStream.Write(buffer, 0, buffer.Length);
             }
-
-            return "{\"success\":true}";
+            catch (Exception ex)
+            {
+                logger.LogError($"Error handling spawn request: {ex.Message}");
+                context.Response.StatusCode = 500;
+                string responseString = "{\"error\":\"Internal server error\"}";
+                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                context.Response.ContentLength64 = buffer.Length;
+                context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+            }
         }
 
-        private string HandleSpawnAllPlantsRequest()
+        private void HandleSpawnAllPlants(HttpListenerContext context)
         {
-            foreach (var plant in plantSpawners)
+            try
             {
-                // Spawn in different positions to avoid overlap
-                int row = UnityEngine.Random.Range(0, 5);
-                int col = UnityEngine.Random.Range(0, 9);
+                // Get all available plant types from the game
+                var allPlants = GameAPP.resourcesManager.allPlants;
                 
-                if (row < 5 && col < 9)
+                foreach (var plantType in allPlants)
                 {
-                    SpawnPlantOnMainThread(plant.Key, row, col);
+                    // Execute the spawn in the main thread
+                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                    {
+                        // Spawn at a default position
+                        if (CreatePlant.Instance != null)
+                        {
+                            CreatePlant.Instance.SetPlant(4, 1, plantType); // 0-indexed: col 4 (5th column), row 1 (2nd row)
+                            logger.LogInfo($"Spawned plant {plantType}");
+                        }
+                        else
+                        {
+                            logger.LogError("CreatePlant.Instance is null");
+                        }
+                    });
                 }
+
+                context.Response.StatusCode = 200;
+                string responseString = "{\"success\":true,\"message\":\"All plants spawned\"}";
+                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                context.Response.ContentLength64 = buffer.Length;
+                context.Response.OutputStream.Write(buffer, 0, buffer.Length);
             }
-            
-            return "{\"success\":true,\"message\":\"All plants spawned\"}";
+            catch (Exception ex)
+            {
+                logger.LogError($"Error handling spawn all plants: {ex.Message}");
+                context.Response.StatusCode = 500;
+                string responseString = "{\"error\":\"Internal server error\"}";
+                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                context.Response.ContentLength64 = buffer.Length;
+                context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+            }
         }
 
-        private string HandleSpawnAllZombiesRequest()
+        private void HandleSpawnAllZombies(HttpListenerContext context)
         {
-            foreach (var zombie in zombieSpawners)
+            try
             {
-                // Spawn in different positions to avoid overlap
-                int row = UnityEngine.Random.Range(0, 5);
-                int col = UnityEngine.Random.Range(0, 9);
+                // Get all available zombie types from the game
+                var allZombies = GameAPP.resourcesManager.allZombieTypes;
                 
-                if (row < 5 && col < 9)
+                foreach (var zombieType in allZombies)
                 {
-                    SpawnZombieOnMainThread(zombie.Key, row, col);
+                    // Execute the spawn in the main thread
+                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                    {
+                        // Spawn at a default position
+                        if (CreateZombie.Instance != null)
+                        {
+                            CreateZombie.Instance.SetZombie(1, zombieType, -5f + 4 * 1.37f); // row 1 (2nd row), x position for col 5
+                            logger.LogInfo($"Spawned zombie {zombieType}");
+                        }
+                        else
+                        {
+                            logger.LogError("CreateZombie.Instance is null");
+                        }
+                    });
                 }
+
+                context.Response.StatusCode = 200;
+                string responseString = "{\"success\":true,\"message\":\"All zombies spawned\"}";
+                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                context.Response.ContentLength64 = buffer.Length;
+                context.Response.OutputStream.Write(buffer, 0, buffer.Length);
             }
-            
-            return "{\"success\":true,\"message\":\"All zombies spawned\"}";
+            catch (Exception ex)
+            {
+                logger.LogError($"Error handling spawn all zombies: {ex.Message}");
+                context.Response.StatusCode = 500;
+                string responseString = "{\"error\":\"Internal server error\"}";
+                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                context.Response.ContentLength64 = buffer.Length;
+                context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+            }
         }
 
-        private IEnumerator SpawnPlantRepeatedly(string plantId, int row, int col, int amount, int duration)
+        // Method to spawn plants with delay between each spawn
+        private void SpawnPlantsWithDelay(PlantType plantType, int row, int col, int amount, int duration)
         {
             for (int i = 0; i < amount; i++)
             {
-                if (i > 0) yield return new WaitForSeconds(duration / 1000f);
-                SpawnPlantOnMainThread(plantId, row, col);
+                int delay = i * duration;
+                UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                {
+                    System.Threading.Tasks.Task.Delay(delay).ContinueWith(_ =>
+                    {
+                        // Ensure we're back on the main thread for the actual spawn
+                        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                        {
+                            // Call the game's spawn function
+                            if (CreatePlant.Instance != null)
+                            {
+                                // Adjust coordinates to match game's system (0-indexed)
+                                CreatePlant.Instance.SetPlant(col - 1, row - 1, plantType);
+                                logger.LogInfo($"Spawned plant {plantType} at row {row}, col {col}");
+                            }
+                            else
+                            {
+                                logger.LogError("CreatePlant.Instance is null");
+                            }
+                        });
+                    });
+                });
             }
         }
 
-        private IEnumerator SpawnZombieRepeatedly(string zombieId, int row, int col, int amount, int duration)
+        // Method to spawn zombies with delay between each spawn
+        private void SpawnZombiesWithDelay(ZombieType zombieType, int row, int col, int amount, int duration)
         {
             for (int i = 0; i < amount; i++)
             {
-                if (i > 0) yield return new WaitForSeconds(duration / 1000f);
-                SpawnZombieOnMainThread(zombieId, row, col);
+                int delay = i * duration;
+                UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                {
+                    System.Threading.Tasks.Task.Delay(delay).ContinueWith(_ =>
+                    {
+                        // Ensure we're back on the main thread for the actual spawn
+                        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                        {
+                            // Call the game's spawn function
+                            if (CreateZombie.Instance != null)
+                            {
+                                // Calculate X position based on column (game-specific calculation)
+                                float xPosition = -5f + (col - 1) * 1.37f;
+                                CreateZombie.Instance.SetZombie(row - 1, zombieType, xPosition);
+                                logger.LogInfo($"Spawned zombie {zombieType} at row {row}, col {col} (x={xPosition})");
+                            }
+                            else
+                            {
+                                logger.LogError("CreateZombie.Instance is null");
+                            }
+                        });
+                    });
+                });
             }
         }
 
-        private void SpawnPlantOnMainThread(string plantId, int row, int col)
+        // Helper method to get PlantType by name
+        private PlantType? GetPlantTypeByName(string name)
         {
-            // Execute spawn on main thread to ensure Unity compatibility
-            StartCoroutine(ExecuteOnMainThread(() => {
-                if (plantSpawners.ContainsKey(plantId))
+            // Try to parse as integer first (for ID)
+            if (int.TryParse(name, out int id))
+            {
+                try
                 {
-                    plantSpawners[plantId](row, col);
+                    return (PlantType)id;
                 }
-            }));
-        }
-
-        private void SpawnZombieOnMainThread(string zombieId, int row, int col)
-        {
-            // Execute spawn on main thread to ensure Unity compatibility
-            StartCoroutine(ExecuteOnMainThread(() => {
-                if (zombieSpawners.ContainsKey(zombieId))
+                catch
                 {
-                    zombieSpawners[zombieId](row, col);
+                    return null;
                 }
-            }));
+            }
+
+            // Try to match by name (case-insensitive)
+            foreach (PlantType plantType in Enum.GetValues(typeof(PlantType)))
+            {
+                if (string.Equals(plantType.ToString(), name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return plantType;
+                }
+            }
+
+            return null;
         }
 
-        private IEnumerator ExecuteOnMainThread(System.Action action)
+        // Helper method to get ZombieType by name
+        private ZombieType? GetZombieTypeByName(string name)
         {
-            yield return new WaitForEndOfFrame();
-            action?.Invoke();
+            // Try to parse as integer first (for ID)
+            if (int.TryParse(name, out int id))
+            {
+                try
+                {
+                    return (ZombieType)id;
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
+            // Try to match by name (case-insensitive)
+            foreach (ZombieType zombieType in Enum.GetValues(typeof(ZombieType)))
+            {
+                if (string.Equals(zombieType.ToString(), name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return zombieType;
+                }
+            }
+
+            return null;
         }
 
-        // Placeholder functions - these would be replaced with actual game functions
-        private void SpawnPlant(string plantId, int row, int col)
+        public override bool Unload()
         {
-            Logger.LogInfo($"Spawning plant {plantId} at row {row}, col {col}");
-            // Actual game implementation would go here
-        }
-
-        private void SpawnZombie(string zombieId, int row, int col)
-        {
-            Logger.LogInfo($"Spawning zombie {zombieId} at row {row}, col {col}");
-            // Actual game implementation would go here
+            isRunning = false;
+            logger.LogInfo("Webhook PvZ Fusion plugin unloaded");
+            return true;
         }
     }
 
-    public class SpawnRequest
+    // Unity Main Thread Dispatcher to ensure game functions are called from main thread
+    public class UnityMainThreadDispatcher : MonoBehaviour
     {
-        public string action { get; set; }
-        public string type { get; set; }
-        public string id { get; set; }
-        public int row { get; set; }
-        public int col { get; set; }
-        public int amount { get; set; }
-        public int duration { get; set; }
+        private static UnityMainThreadDispatcher _instance;
+        private readonly Queue<System.Action> _executionQueue = new Queue<System.Action>();
+
+        public static UnityMainThreadDispatcher Instance()
+        {
+            if (_instance == null)
+            {
+                GameObject obj = new GameObject("UnityMainThreadDispatcher");
+                _instance = obj.AddComponent<UnityMainThreadDispatcher>();
+            }
+            return _instance;
+        }
+
+        void Update()
+        {
+            lock (_executionQueue)
+            {
+                while (_executionQueue.Count > 0)
+                {
+                    _executionQueue.Dequeue().Invoke();
+                }
+            }
+        }
+
+        public void Enqueue(System.Action action)
+        {
+            lock (_executionQueue)
+            {
+                _executionQueue.Enqueue(action);
+            }
+        }
     }
 }

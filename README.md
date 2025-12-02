@@ -33,3 +33,98 @@
 感谢[@MC屑鱼](https://space.bilibili.com/3493077316536784)(Github:[@SalmonCN-RH](https://github.com/SalmonCN-RH/))的技术支持
 
 感谢[@高数带我飞](https://space.bilibili.com/1117414477)(Github:[@LibraHp](https://github.com/LibraHp/))的技术支持    
+
+# PvZFusionWebhookPlugin
+
+A BepInEx plugin for Plants vs Zombies Fusion that provides webhook functionality to spawn plants and zombies via HTTP requests.
+
+## Features
+
+- HTTP server running on port 6969
+- Spawn individual plants and zombies via webhook calls
+- Spawn all available plants or zombies at once
+- Support for multiple spawns with delay intervals
+
+## Endpoints
+
+### POST /spawn
+Spawn a specific plant or zombie.
+
+Request body:
+```json
+{
+  "action": "spawn",
+  "type": "plant|zombie",
+  "id": "plant_or_zombie_name|id",
+  "row": 0-4,
+  "col": 0-8,
+  "amount": 1,
+  "duration": 0 // delay in milliseconds between spawns
+}
+```
+
+Example:
+```json
+{
+  "action": "spawn",
+  "type": "plant",
+  "id": "Peashooter",
+  "row": 2,
+  "col": 5,
+  "amount": 3,
+  "duration": 1000
+}
+```
+
+### GET /spawn/all/plants
+Spawn all available plants at random positions.
+
+### GET /spawn/all/zombies
+Spawn all available zombies at random positions.
+
+## Installation
+
+1. Build the plugin using the provided .csproj file
+2. Copy the compiled DLL to the BepInEx/Plugins folder of your Plants vs Zombies Fusion installation
+3. Ensure you have the required dependencies (ToolModData.dll and other BepInEx libraries)
+
+## Dependencies
+
+- BepInEx 5.x or 6.x
+- IL2CPP BepInEx framework
+- ToolModData (from PvZWebhook4 project)
+- HarmonyX
+
+## Usage Example
+
+You can use curl or any HTTP client to send requests to the plugin:
+
+```bash
+# Spawn a Peashooter at row 2, column 5
+curl -X POST http://localhost:6969/spawn \n  -H "Content-Type: application/json" \n  -d '{
+    "action": "spawn",
+    "type": "plant",
+    "id": "Peashooter",
+    "row": 2,
+    "col": 5
+  }'
+
+# Spawn 5 zombies with 500ms delay between each
+curl -X POST http://localhost:6969/spawn \n  -H "Content-Type: application/json" \n  -d '{
+    "action": "spawn",
+    "type": "zombie",
+    "id": "NormalZombie",
+    "row": 1,
+    "col": 8,
+    "amount": 5,
+    "duration": 500
+  }'
+```
+
+## Notes
+
+- The plugin integrates with the existing PvZ Fusion game functions for spawning
+- Plant and zombie names are case-sensitive and must match the game's internal names
+- Row values range from 0-4 (5 rows in the game)
+- Column values range from 0-8 (9 columns in the game)
+- All spawn operations are thread-safe and execute on the main Unity thread
