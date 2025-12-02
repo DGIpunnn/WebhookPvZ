@@ -7,50 +7,75 @@
 *.o
 *.a
 *.so
-*.class
-*.pyc
-__pycache__/
-*.pyo
-*.pyd
+*.dylib
+*.lib
+*.exp
+*.ilk
+*.iobj
+*.ipdb
+*.builds
+*.bin
 
 # Dependencies
+packages/
+lib/
 node_modules/
-venv/
-.venv/
-.env
-.env.local
-*.env.*
+bower_components/
+jspm_packages/
+vendor/
 
-# Logs
-*.log
+# Output and build directories
+bin/
+obj/
+Debug/
+Release/
+x64/
+x86/
+build/
+dist/
+out/
+_output/
+publish/
+_Pvt_Extensions/
 
-# Temp files
-*.tmp
+# IDE files
+.vs/
+.vscode/
+.idea/
+*.user
+*.userosscache
+*.suo
+*.csproj.user
+*.userprefs
 *.swp
-*.swo
-
-# OS generated files
+*~
 .DS_Store
 Thumbs.db
 
-# IDE specific
-.vscode/
-.idea/
+# Logs
+*.log
+*.bak
+*.tmp
 
-# Build directories
-build/
-dist/
-target/
-bin/
-obj/
+# Environment
+.env
+.env.local
+.env.*
+!*.env.example
 
-# Coverage reports
+# Test and coverage
 coverage/
 htmlcov/
 .coverage
+*.coverage
 
-# Cache directories
-.mypy_cache/
-.pytest_cache/
-.gradle/
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
 ```
