@@ -4,7 +4,7 @@
 echo "Building PvZFusionWebhookPlugin..."
 
 # Create output directory
-mkdir -p ./bin/Debug
+mkdir -p ./bin/Debug/net46
 
 # Check if .NET SDK is available
 if ! command -v dotnet &> /dev/null; then
@@ -18,12 +18,12 @@ dotnet restore
 
 # Build the project
 echo "Building project..."
-dotnet build --configuration Debug --output ./bin/Debug
+dotnet build --configuration Debug
 
 if [ $? -eq 0 ]; then
     echo "Build successful!"
-    echo "Output files are located in ./bin/Debug/"
-    ls -la ./bin/Debug/
+    echo "Output files are located in ./bin/Debug/net46/"
+    ls -la ./bin/Debug/net46/
 else
     echo "Build failed!"
     exit 1
