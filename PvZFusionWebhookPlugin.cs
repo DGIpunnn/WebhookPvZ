@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
@@ -349,61 +350,100 @@ namespace WebhookPvZFusion
         // Method to spawn plants with delay between each spawn
         private void SpawnPlantsWithDelay(PlantType plantType, int row, int col, int amount, int duration)
         {
-            for (int i = 0; i < amount; i++)
+            if (amount <= 0) return;
+            
+            // Adjust coordinates to match game's system (0-indexed)
+            int gameRow = row - 1;
+            int gameCol = col - 1;
+            
+            // Validate row and column are within bounds
+            if (gameRow < 0 || gameRow > 4 || gameCol < 0 || gameCol > 8)
             {
-                int delay = i * duration;
+                logger.LogWarning($"Row {row} or column {col} out of bounds for plant spawn");
+                return;
+            }
+            
+            if (amount == 1)
+            {
+                // Single spawn - execute immediately
                 UnityMainThreadDispatcher.Instance().Enqueue(() =>
                 {
-                    System.Threading.Tasks.Task.Delay(delay).ContinueWith(_ =>
+                    if (CreatePlant.Instance != null)
                     {
-                        // Ensure we're back on the main thread for the actual spawn
-                        UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                        {
-                            // Call the game's spawn function
-                            if (CreatePlant.Instance != null)
-                            {
-                                // Adjust coordinates to match game's system (0-indexed)
-                                CreatePlant.Instance.SetPlant(col - 1, row - 1, plantType);
-                                logger.LogInfo($"Spawned plant {plantType} at row {row}, col {col}");
-                            }
-                            else
-                            {
-                                logger.LogError("CreatePlant.Instance is null");
-                            }
-                        });
-                    });
+                        CreatePlant.Instance.SetPlant(gameCol, gameRow, plantType);
+                        logger.LogInfo($"Spawned plant {plantType} at row {row}, col {col}");
+                    }
+                    else
+                    {
+                        logger.LogError("CreatePlant.Instance is null");
+                    }
                 });
+            }
+            else
+            {
+                // Multiple spawns with delay
+                for (int i = 0; i < amount; i++)
+                {
+                    int spawnIndex = i;
+                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                    {
+                        // Use coroutine-like approach with Invoke to delay execution
+                        GameObject delayObject = new GameObject("SpawnDelay");
+                        delayObject.AddComponent<SpawnDelayComponent>().StartCoroutine(
+                            SpawnPlantAfterDelay(delayObject, plantType, gameRow, gameCol, spawnIndex, duration)
+                        );
+                    });
+                }
             }
         }
 
         // Method to spawn zombies with delay between each spawn
         private void SpawnZombiesWithDelay(ZombieType zombieType, int row, int col, int amount, int duration)
         {
-            for (int i = 0; i < amount; i++)
+            if (amount <= 0) return;
+            
+            // Adjust coordinates to match game's system (0-indexed)
+            int gameRow = row - 1;
+            float xPosition = -5f + (col - 1) * 1.37f;  // Calculate X position based on column
+            
+            // Validate row is within bounds
+            if (gameRow < 0 || gameRow > 4)
             {
-                int delay = i * duration;
+                logger.LogWarning($"Row {row} out of bounds for zombie spawn");
+                return;
+            }
+            
+            if (amount == 1)
+            {
+                // Single spawn - execute immediately
                 UnityMainThreadDispatcher.Instance().Enqueue(() =>
                 {
-                    System.Threading.Tasks.Task.Delay(delay).ContinueWith(_ =>
+                    if (CreateZombie.Instance != null)
                     {
-                        // Ensure we're back on the main thread for the actual spawn
-                        UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                        {
-                            // Call the game's spawn function
-                            if (CreateZombie.Instance != null)
-                            {
-                                // Calculate X position based on column (game-specific calculation)
-                                float xPosition = -5f + (col - 1) * 1.37f;
-                                CreateZombie.Instance.SetZombie(row - 1, zombieType, xPosition);
-                                logger.LogInfo($"Spawned zombie {zombieType} at row {row}, col {col} (x={xPosition})");
-                            }
-                            else
-                            {
-                                logger.LogError("CreateZombie.Instance is null");
-                            }
-                        });
-                    });
+                        CreateZombie.Instance.SetZombie(gameRow, zombieType, xPosition);
+                        logger.LogInfo($"Spawned zombie {zombieType} at row {row}, col {col} (x={xPosition})");
+                    }
+                    else
+                    {
+                        logger.LogError("CreateZombie.Instance is null");
+                    }
                 });
+            }
+            else
+            {
+                // Multiple spawns with delay
+                for (int i = 0; i < amount; i++)
+                {
+                    int spawnIndex = i;
+                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                    {
+                        // Use coroutine-like approach with Invoke to delay execution
+                        GameObject delayObject = new GameObject("SpawnDelay");
+                        delayObject.AddComponent<SpawnDelayComponent>().StartCoroutine(
+                            SpawnZombieAfterDelay(delayObject, zombieType, gameRow, xPosition, spawnIndex, duration)
+                        );
+                    });
+                }
             }
         }
 
@@ -461,6 +501,64 @@ namespace WebhookPvZFusion
             }
 
             return null;
+        }
+
+        // Component to handle delayed spawning using Unity coroutines
+        public class SpawnDelayComponent : MonoBehaviour
+        {
+            public IEnumerator SpawnPlantAfterDelay(GameObject delayObject, PlantType plantType, int row, int col, int spawnIndex, int duration)
+            {
+                yield return new WaitForSeconds(duration / 1000.0f * spawnIndex); // WaitForSeconds takes seconds, not milliseconds
+                
+                // Call the game's spawn function
+                if (CreatePlant.Instance != null)
+                {
+                    CreatePlant.Instance.SetPlant(col, row, plantType);
+                    var plugin = BepInEx.Bootstrap.Chainloader.ManagerObject.GetComponent<PvZFusionWebhookPlugin>();
+                    if (plugin != null)
+                    {
+                        plugin.logger.LogInfo($"Spawned plant {plantType} at row {row + 1}, col {col + 1}");
+                    }
+                }
+                else
+                {
+                    var plugin = BepInEx.Bootstrap.Chainloader.ManagerObject.GetComponent<PvZFusionWebhookPlugin>();
+                    if (plugin != null)
+                    {
+                        plugin.logger.LogError("CreatePlant.Instance is null");
+                    }
+                }
+                
+                // Clean up the GameObject after spawning
+                GameObject.Destroy(delayObject);
+            }
+            
+            public IEnumerator SpawnZombieAfterDelay(GameObject delayObject, ZombieType zombieType, int row, float xPosition, int spawnIndex, int duration)
+            {
+                yield return new WaitForSeconds(duration / 1000.0f * spawnIndex); // WaitForSeconds takes seconds, not milliseconds
+                
+                // Call the game's spawn function
+                if (CreateZombie.Instance != null)
+                {
+                    CreateZombie.Instance.SetZombie(row, zombieType, xPosition);
+                    var plugin = BepInEx.Bootstrap.Chainloader.ManagerObject.GetComponent<PvZFusionWebhookPlugin>();
+                    if (plugin != null)
+                    {
+                        plugin.logger.LogInfo($"Spawned zombie {zombieType} at row {row + 1}, x={xPosition}");
+                    }
+                }
+                else
+                {
+                    var plugin = BepInEx.Bootstrap.Chainloader.ManagerObject.GetComponent<PvZFusionWebhookPlugin>();
+                    if (plugin != null)
+                    {
+                        plugin.logger.LogError("CreateZombie.Instance is null");
+                    }
+                }
+                
+                // Clean up the GameObject after spawning
+                GameObject.Destroy(delayObject);
+            }
         }
 
         public override bool Unload()

@@ -1,51 +1,27 @@
 ```
-# Build artifacts
-*.dll
+# Compiled and build artifacts
 *.exe
-*.pdb
-*.config
-*.sln
-*.csproj.user
-bin/
+*.dll
+*.so
+*.a
+*.obj
+*.out
 obj/
-Debug/
-Release/
-build/
-
+bin/
 # Dependencies
 packages/
-lib/
-node_modules/
-vendor/
-
-# Configuration
-*.config
-*.settings
-
-# Logs
+# Logs and temp files
 *.log
-logs/
-
+*.tmp
+*.swp
 # Environment
 .env
 .env.local
-.env.*
-
+*.env.*
 # Editors
 .vscode/
 .idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Archives
-*.zip
-*.tar
-*.gz
-*.7z
-*.rar
+# Build scripts output
+build/
+dist/
 ```
-packages-microsoft-prod.deb
