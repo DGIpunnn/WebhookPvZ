@@ -1,31 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <TargetFramework>net46</TargetFramework>
     <AssemblyTitle>PvZFusionWebhookPlugin</AssemblyTitle>
     <Product>PvZFusionWebhookPlugin</Product>
     <Description>A BepInEx plugin for Plants vs Zombies Fusion with webhook functionality</Description>
     <Copyright>Copyright ©  2023</Copyright>
     <AssemblyVersion>1.1.0.0</AssemblyVersion>
     <FileVersion>1.1.0.0</FileVersion>
-    <OutputPath>bin\Debug\net6.0\</OutputPath>
-    <LangVersion>10</LangVersion>
+    <OutputPath>bin\Debug\net46\</OutputPath>
+    <LangVersion>8</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
-    <PackageReference Include="BepInEx.Core" Version="6.0.0-be.664" IncludeAssets="compile" />
-    <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
-    <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.664" IncludeAssets="compile" />
-    <PackageReference Include="UnityEngine.Modules" Version="2021.3.1" IncludeAssets="compile" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" IncludeAssets="compile" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
 
 
